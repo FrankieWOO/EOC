@@ -1,4 +1,4 @@
-classdef Maccepavd1DOF
+classdef Maccepavd2DOF
     %MACCEPAVD1DOF Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -8,7 +8,7 @@ classdef Maccepavd1DOF
     end
     
     methods
-        function self = Maccepavd1DOF()
+        function self = Maccepavd2DOF()
             self.init_rigidBodyTree();
         end
         
