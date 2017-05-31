@@ -4,22 +4,21 @@ classdef Maccepavd2DOF
     
     properties
         rigidBodyTree;
-        link_len = [0.15 0.12];
-        mass = [1 1];
-        com = [0.1 0.08];
+        
     end
     
     methods
         function self = Maccepavd2DOF()
-            
             self.rigidBodyTree = self.init_rigidBodyTree();
         end
         
         function robot_tree = init_rigidBodyTree(self)
+            L1 = 0.15;
+            L2 = 0.12;
             robot_tree = robotics.RigidBodyTree;
             link1 = robotics.RigidBody('link1');
-            link1.Mass = self.mass(1);
-            link1.CenterOfMass = [self.com(1) 0 0];
+            link1.Mass = 1;
+            link1.CenterOfMass = [0.1 0 0];
             joint1 = robotics.Joint('joint1', 'revolute');
             setFixedTransform(joint1,[0 0 0 0] , 'dh');
             link1.Joint = joint1;
@@ -27,18 +26,12 @@ classdef Maccepavd2DOF
             addBody(robot_tree, link1, basename);
             
             link2 = robotics.RigidBody('link2');
-            link2.Mass = self.mass(2);
-            link2.CenterOfMass = [self.com(2) 0 0];
+            link2.Mass = 1;
+            link2.CenterOfMass = [0.08 0 0];
             joint2 = robotics.Joint('joint2', 'revolute');
-            setFixedTransform(joint2, [self.link_len(1) 0 0 0] , 'dh');
+            setFixedTransform(joint2, [L1 0 0 0] , 'dh');
             link2.Joint = joint2;
             addBody(robot_tree, link2, 'link1');
-            
-            tool = robotics.RigidBody('tool');
-            joint3 = robotics.Joint('fix1','fixed');
-            setFixedTransform(joint3, trvec2tform([self.link_len(2), 0, 0]));
-            tool.Joint = joint3;
-            addBody(robot_tree, tool, 'link2');
         end
     end
     
