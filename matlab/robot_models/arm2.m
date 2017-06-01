@@ -1,20 +1,22 @@
-classdef Maccepavd2DOF
-    %MACCEPAVD1DOF Summary of this class goes here
+classdef arm2
+    %ARM2 Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        rigidBodyTree;
-        link_len = [0.15 0.12];
-        mass = [1 1];
-        com = [0.1 0.08];
+        rigidBodyTree
+        
+        link_len
+        mass
+        com
     end
     
     methods
-        function self = Maccepavd2DOF()
+        function self = arm2(param)
+            if( isfield(param,'link_len') ), self.link_len = param.link_len; end
+            if( isfield(param,'mass') ), self.mass = param.mass; end
+            if( isfield(param,'com') ), self.com = param.com; end
             
-            self.rigidBodyTree = self.init_rigidBodyTree();
         end
-        
         function robot_tree = init_rigidBodyTree(self)
             robot_tree = robotics.RigidBodyTree;
             link1 = robotics.RigidBody('link1');
@@ -35,10 +37,12 @@ classdef Maccepavd2DOF
             addBody(robot_tree, link2, 'link1');
             
             tool = robotics.RigidBody('tool');
-            joint3 = robotics.Joint('fix1','fixed');
-            setFixedTransform(joint3, trvec2tform([self.link_len(2), 0, 0]));
-            tool.Joint = joint3;
+            jnt_tool = robotics.Joint('jnt_tool','fixed');
+            setFixedTransform(jnt_tool, trvec2tform([self.link_len(2), 0, 0]));
+            tool.Joint = jnt_tool;
             addBody(robot_tree, tool, 'link2');
+            
+            robot_tree.Gravity = [0 0 -9.81];
         end
     end
     
