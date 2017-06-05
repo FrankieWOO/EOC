@@ -16,13 +16,14 @@
 function J = get_jacobian_fd ( f, x )
 
 delta=1e-6;
+J = zeros(size(x));
 for i=1:length(x)
 	dx = zeros(size(x)); dx(i) = delta;
 	yp = f(x+dx);
 	ym = f(x-dx);
-	J(:,i) = ((yp(:) - ym(:))/(2*delta))';
+	J(i) = ((yp - ym)/(2*delta));
 end
-
+end
 % (below is Doxygen documentation)
 %> \file get_jacobian_fd.m
 %> \author Matthew Howard (MH), matthew.howard@ed.ac.uk

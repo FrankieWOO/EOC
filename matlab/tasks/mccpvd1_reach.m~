@@ -1,0 +1,84 @@
+classdef mccpvd1_reach
+    %MCCPVD1_REACH robot specific task definition
+    %   Define robot-task specific cost functions
+    % costf: final cost function
+    % costr: running cost function
+    
+    properties
+        robot_model
+        target
+        w
+        w0 = 1
+        alpha % energy regeneration rate
+        epsilon = 0
+        fd = 1
+    end
+    
+    methods
+        function self = mccpvd1_reach(robot_model, p)
+            self.robot_model = robot_model;
+            self.target = p.target;
+            self.w = p.w;
+            self.alpha = p.alpha;
+            self.epsilon = p.epsilon;
+        end
+        
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j(self,x,u,t)
+            
+            if (isnan(u))
+            fl = @(x,u,t) self.costf(x);
+            l = fl(x);
+                if nargout>1
+            flJ = @(x) get_jacobian_fd(x);
+            l_x = flJ(x);
+            l_xx = get_hessian(flJ,x);
+            else
+                fl = @(x,u,t) self.costr(x,u,t);
+                l = fl(x,u,t);
+            
+            
+            if nargout>1
+                if(~ isfield(p,'fd')), p.fd = 1;end
+                
+                if self.fd == 0
+                    % analytical derivatives
+                    % todo: this does not include motor dynamics now
+                    l_x = [2*(x(1) - p.target);0] ;
+                    l_u = 2*p.epsilon*u ;
+                    l_xx = [ 2 0;0 0];
+                    l_uu = [2*p.epsilon 0 0;0 2*p.epsilon 0;0 0 2*p.epsilon] ;
+                    l_ux = zeros(3,2);
+                elseif self.fd == 1
+                    
+                    % finite difference
+                    flJ=@(x,u,t)J_cost_fd ( fl, x, u, t );
+                    [l_x ,l_u      ] = flJ ( x, u, t );
+                    flH =@(x,u,t)H_cost_fd  ( flJ, x, u, t );
+                    [l_xx,l_uu,l_ux] = flH  ( x, u, t );
+                else
+                    error('missing or wrong value of p.fd')
+                end
+                
+            end
+            end
+        end
+        
+        
+        function c = costr(self, x, u)
+            
+            c1 = (x(1) - self.target).^2;
+            
+            % running cost
+            mechpower = self.robot_model.mechpower(x ,u);
+            damping = self.robot_model.damping(u(3));
+            power = mechpower - self.alpha*damping*(x(2)^2);
+            
+            c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
+        end
+        
+        function c= costf(self, x)
+            c = (x(1) - self.target).^2 * self.dt * self.w0;
+        end
+    end
+end
+

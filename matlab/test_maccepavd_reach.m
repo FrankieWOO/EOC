@@ -16,27 +16,25 @@ x0(1) = position0;
 x0(3) = position0;
 x0(6) = 0;
 
-task_param = [];
-task_param.target = target;
-task_param.T = T;
-task_param.w = w;
-task_param.rege_ratio = alpha;
-task_param.position0 =  position0;
-task_param.x0 = x0; 
-%define the initial spring pretension motor state
-% all velocity, accel states are zero
-task_param.with_motor_dynamics = 1;
-task_param.multiple_inits = 0;
+% task_param = [];
+% task_param.target = target;
+% task_param.T = T;
+% task_param.w = w;
+% task_param.rege_ratio = alpha;
+% task_param.position0 =  position0;
+% task_param.x0 = x0; 
+% %define the initial spring pretension motor state
+% % all velocity, accel states are zero
+% task_param.with_motor_dynamics = 1;
+% task_param.multiple_inits = 0;
 %----%
 
-task = OptTask(robot_model, 'fast_reach', 'net_mechpower', task_param);
+%task = OptTask(robot_model, 'fast_reach', 'net_mechpower', task_param);
 %%%%
-costfn = CostMccvd1();
+%costfn = CostMccvd1();
 
 
 %%%% step 3: init OC handler
-oc = ILQRController(robot_model, task);
-oc.opt_param.online_plotting=0;
 
 cost_param = [];
 cost_param.w0 = 1;
@@ -48,7 +46,12 @@ cost_param.dt = dt;
 cost_param.target = target;
 cost_param.fd = 1; % use finite difference or not
 f = @(x,u)robot_model.dynamics_with_jacobian(x,u);
-j = @(x,u,t)costfn.j_reach_netmech(robot_model,x,u,t,cost_param);
+task = mccpvd1_reach(robot_model, cost_param);
+j = @(x,u,t)task.j(x,u,t);
+
+%oc = ILQRController(robot_model, task);
+%oc.opt_param.online_plotting=0;
+
 %%
 opt_param = [];
 opt_param.umax = robot_model.umax;
@@ -66,6 +69,6 @@ opt_param.umin = robot_model.umin;
 opt_param.T = T;
 u0 = [cost_param.target; 0; 0];
 
-result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
-%result = ILQRController.run_multiple(f, j, dt, N, x0, opt_param);
+%result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
+result = ILQRController.run_multiple(f, j, dt, N, x0, opt_param);
 
