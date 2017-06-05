@@ -31,8 +31,6 @@ x0(6) = 0;
 
 %task = OptTask(robot_model, 'fast_reach', 'net_mechpower', task_param);
 %%%%
-%costfn = CostMccvd1();
-
 
 %%%% step 3: init OC handler
 
@@ -48,6 +46,8 @@ cost_param.fd = 1; % use finite difference or not
 f = @(x,u)robot_model.dynamics_with_jacobian(x,u);
 task = mccpvd1_reach(robot_model, cost_param);
 j = @(x,u,t)task.j(x,u,t);
+%costfn = CostMccvd1();
+%j = @(x,u,t)costfn.j_reach_netmech(robot_model,x,u,t,cost_param);
 
 %oc = ILQRController(robot_model, task);
 %oc.opt_param.online_plotting=0;
@@ -57,7 +57,7 @@ opt_param = [];
 opt_param.umax = robot_model.umax;
 opt_param.umin = robot_model.umin;
 opt_param.lambda_init = 0.01;
-opt_param.lambda_max  = 0.05;
+opt_param.lambda_max  = 0.5;
 opt_param.iter_max = 100;
 opt_param.online_plotting = 0;
 opt_param.online_printing = 1;

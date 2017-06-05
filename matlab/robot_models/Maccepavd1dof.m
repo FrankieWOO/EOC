@@ -80,9 +80,14 @@ classdef Maccepavd1dof
             
             try
             %servo_param.p=[14000;1150;38;14000;1150;38];
-            %servo_param = load('maccepa_servomotor_model.mat');
+            
             servo_param.p = [14000;1150;38;14000;1150;38];
-            model.fnMotorDyn =@(x,u)model.motor_dynamics_3rd(x,u,servo_param.p); 
+            %servo_param.p = [ 2650;455;28;1152;244;20];
+            %model.fnMotorDyn =@(x,u)model.motor_dynamics_3rd(x,u,servo_param.p); 
+            
+            %servo_param = load('maccepa_servomotor_model.mat');
+            model.fnMotorDyn =@(x,u)fn_dynamics_servomotor_3rd_order_filter(x,u,servo_param.p); 
+            
             catch
                 fprintf(1,'Fit servomotor model first please.')
             end
