@@ -15,7 +15,6 @@ classdef Maccepavd1dof
         dimX = 8% dimension of states
         dimU = 3% dimension of controls
         
-        inertia = 0.0061% inertia
         
         %%%% physical design
         % physical joint constriants
@@ -24,18 +23,19 @@ classdef Maccepavd1dof
         qmax = 135*pi/180; %
         qmin = -135*pi/180; %
         % gear ratio from theta1 to q
-        gear1 = 1; %1.4; 
+        gear1 = 4/3; %44/33; 
         
-        spring_constant = 323;
-        link_length = 0.2950;% link length
-        lever_length = 0.03; %B
-        pin_displacement = 0.18; %C
+        spring_constant = 231;
+        link_length = 0.15;% link length
+        link_mass = 0.09;
+        
+        
+        lever_length = 0.036; %B
+        pin_displacement = 0.135; %C
         A0
         drum_radius = 0.015;
-        gravity_constant = 0;
-         % frictions
-        viscous_friction = 0.013 %0.0025;
-        coulomb_friction = 0;
+        
+        servo1_mass = 0.09;
         
        
         %variable damping range
@@ -46,8 +46,27 @@ classdef Maccepavd1dof
         
         %%%% ---- physical design
         
+        %%%% servo motor specification, reflected at gearbox output shaft
+        inertia_m1 = 0.0099;
+        K_m1 = 0.3811; % torque constant
+        D_m1 = 0.2009;
+        R_m1 = 0.8222;
+        inertia_m2 = 0.0099;
+        K_m2 = 0.3811;
+        D_m2 = 0.2009;
+        R_m2 = 0.8222;
+        %%%%
+        
+        %%%% dynamical properties
+        inertia = 0.00137% calculated inertia
+        % frictions
+        viscous_friction = 0.013 %0.0025;
+        coulomb_friction = 0;
+        gravity_constant = 0;
+        
+        %%%%
         %%%% control input limits
-        umax = [pi/3; pi; 1] ;
+        umax = [pi/3; 2*pi/3; 1] ;
         umin = [-pi/3; 0; 0] ;
         %%%%
         
@@ -159,12 +178,26 @@ classdef Maccepavd1dof
            acc = model.torque_total(x,u)./model.inertia;
         end
         
-        function k = stiffness(model, x, u)
-           k=0; 
+        function k = stiffness(model, x)
+            C = model.pin_displacement;
+            B = model.lever_length;
+            A = sqrt( C^2 + B^2 - 2*B*C.*cos( x(3,:)/model.gear1-x(1,:) ) );
+            phi = x(3,:)/model.gear1-x(1,:);
+            kappa = model.spring_constant;
+            r = model.drum_radius;
+            k=  kappa*B*C*cos(phi)*( 1 + (r*x(6) - model.A0)/A ) - ...
+                kappa*(B*C*sin(phi))^2*( r*x(6) - model.A0 )/A^1.5 ;
         end
         
-
+        function tau_m = tau_m1(model, x)
+            tau_l = model.torque_spring(x)/model.gear1;
+            tau_m = tau_l + model.D_m1*x(4) + model.inertia_m1*x(5);
+        end
         
+        function tau_m = tau_m2(model, x)
+            tau_l = model.spring_displacement(x)*model.spring_constant;
+            tau_m = tau_l + model.D_m2*x(7) + model.inertia_m2*x(8);
+        end
         %variable damping
         function d = damping(model,duty_circle)
             % duty_circle: 0-1
@@ -177,8 +210,8 @@ classdef Maccepavd1dof
             %spring_force = sprdis*model.spring_constant;
             C = model.pin_displacement;
             B = model.lever_length;
-            A = sqrt( C^2 + B^2 - 2*B*C.*cos( x(3,:)-x(1,:) ) );
-            phi = x(3,:)-x(1,:);
+            A = sqrt( C^2 + B^2 - 2*B*C.*cos( x(3,:)/model.gear1-x(1,:) ) );
+            phi = x(3,:)/model.gear1-x(1,:);
             torque = model.spring_constant*B*C*sin(phi)*...
                 (1+ (model.drum_radius*x(6)-model.A0)/A );
         end
@@ -200,8 +233,40 @@ classdef Maccepavd1dof
         function sprlength = spring_displacement(model, x)
             C = model.pin_displacement;
             B = model.lever_length;
-            A = sqrt(C^2 + B^2 - 2*B*C*cos(x(3)-x(1)));
+            A = sqrt(C^2 + B^2 - 2*B*C*cos(x(3)/model.gear1-x(1)));
             sprlength = A+model.drum_radius*x(6)-model.A0; 
+        end
+        
+        function [p_total, p1, p2  ] = total_power(model, x, ~)
+            tau_m1 = model.tau_m1(x);
+            tau_m2 = model.tau_m2(x);
+            I1 = tau_m1/model.K_m1;
+            I2 = tau_m2/model.K_m2;
+            p1e = I1^2*model.R_m1;
+            p2e = I2^2*model.R_m2;
+            p1m = tau_m1*x(4);
+            p2m = tau_m2*x(7);
+            if p1m < 0, p1m =0; end
+            if p2m < 0, p2m =0; end
+            p_total = p1e + p2e + p1m + p2m ;
+            p1 = p1e + p1m;
+            p2 = p2e + p2m;
+        end
+        function [p_ntotal, p1, p2  ] = net_total_power(model, x, u)
+            tau_m1 = model.tau_m1(x);
+            tau_m2 = model.tau_m2(x);
+            I1 = tau_m1/model.K_m1;
+            I2 = tau_m2/model.K_m2;
+            p1e = I1^2*model.R_m1;
+            p2e = I2^2*model.R_m2;
+            p1m = tau_m1*x(4);
+            p2m = tau_m2*x(7);
+            if p1m < 0, p1m =0; end
+            if p2m < 0, p2m =0; end
+            d = model.damping(u(3));
+            p_ntotal = p1e + p2e + p1m + p2m - d*x(2)^2*model.rege_ratio;
+            p1 = p1e + p1m;
+            p2 = p2e + p2m;
         end
         
         function power = net_mechpower(model,x,u)
@@ -213,12 +278,14 @@ classdef Maccepavd1dof
             B = model.lever_length;
             C = model.pin_displacement;
             r = model.drum_radius;
-            A = sqrt(B^2+C^2 - 2*B*C*cos(x(3)-x(1)));
+            A = sqrt(B^2+C^2 - 2*B*C*cos(x(3)/model.gear1-x(1)));
             L = A + model.drum_radius*x(6) - model.A0; 
-            tau_motor1 = kappa*B*C*sin(x(3)-x(1))*(1+ (r*x(6)-model.A0)/A );
-            tau_motor2 = kappa*L*r;
-            power_motor1 = tau_motor1*x(4);
-            power_motor2 = tau_motor2*x(7);
+            
+            tau_s = kappa*B*C*sin(x(3)/model.gear1-x(1))*(1+ (r*x(6)-model.A0)/A );
+            tau_l1 = tau_s/model.gear1;
+            tau_l2 = kappa*L*r;
+            power_motor1 = tau_l1*x(4);
+            power_motor2 = tau_l2*x(7);
              if (power_motor1 <= 0)
                  power_motor1 = 0;
              end
@@ -232,7 +299,7 @@ classdef Maccepavd1dof
             power = power_motor1 + power_motor2 - d*x(2)^2*model.rege_ratio;
         end
         
-        function power = mechpower(model,x,u)
+        function power = output_mechpower(model,x,~)
             % net output mechanical power on motor level
             % note that motor's power has to be non-negative because energy
             % is not recoverable on motor level
@@ -241,9 +308,9 @@ classdef Maccepavd1dof
             B = model.lever_length;
             C = model.pin_displacement;
             r = model.drum_radius;
-            A = sqrt(B^2+C^2 - 2*B*C*cos(x(3)-x(1)));
+            A = sqrt(B^2+C^2 - 2*B*C*cos(x(3)/model.gear1-x(1)));
             L = A + model.drum_radius*x(6) - model.A0; 
-            tau_motor1 = kappa*B*C*sin(x(3)-x(1))*(1+ (r*x(6)-model.A0)/A );
+            tau_motor1 = kappa*B*C*sin(x(3)/model.gear1-x(1))*(1+ (r*x(6)-model.A0)/A );
             tau_motor2 = kappa*L*r;
             power_motor1 = tau_motor1*x(4);
             power_motor2 = tau_motor2*x(7);
