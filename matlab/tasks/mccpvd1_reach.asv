@@ -70,15 +70,6 @@ classdef mccpvd1_reach
             c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
         end
         
-        function c = costr_net(self, x, u)
-            c1 = (x(1) - self.target).^2;
-            
-            p_total = self.robot_model.total_power(x,u);
-            damping = self.robot_model.actuator.damping(u(3));
-            power = p_total - self.alpha*damping*(x(2)^2);
-            c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
-        end
-        
         function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_net(self,x,u,t)
             %net total energy cost
             if (isnan(u))

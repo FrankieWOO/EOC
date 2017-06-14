@@ -461,7 +461,7 @@ classdef ILQRController < OptController
             end
             if isfield(p,'solver'             ),solver              = p.solver  ;
             else
-                solver             ='euler'  ;
+                solver             ='rk4'  ;
             end
             
             % initialise everything
