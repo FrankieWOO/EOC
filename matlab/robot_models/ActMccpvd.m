@@ -6,10 +6,19 @@ classdef ActMccpvd
         B = 0.036
         C = 0.135
         A0 = 0.099 % C - B
-        Ks = 231 % spring constant
+        Ks = 394 %231 % spring constant
         r = 0.015
-        gear = 3/4 % gear ratio between servo1 and link axis
+        gear = 1; %3/4 % gear ratio between servo1 and link axis
         damping_range = [0, 0.00848]; % 0.00848
+        
+        J1 = 0.0099;
+        K1 = 0.3811; % torque constant
+        D1 = 0.2009;
+        R1 = 0.8222;
+        J2 = 0.0099;
+        K2 = 0.3811;
+        D2 = 0.2009;
+        R2 = 0.8222;
     end
     
     methods
@@ -24,7 +33,9 @@ classdef ActMccpvd
             d = obj.damping_range(1) + duty_circle.*(obj.damping_range(2)-obj.damping_range(1));
         end
         
+        
         function torque_damp = torque_damping(obj,qdot, dc)
+            % damping torque
             % note size(x,2) == size(u,2)
             torque_damp = qdot.*obj.damping(dc);
         end
@@ -52,7 +63,7 @@ classdef ActMccpvd
         
         function k = stiffness(obj, q, theta1, theta2)
             
-            A = sqrt( obj.C^2 + obj.B^2 - 2*obj.B*obj.C.*cos( theta1/obj.gear1-q ) );
+            A = sqrt( obj.C^2 + obj.B^2 - 2*obj.B*obj.C.*cos( theta1/obj.gear-q ) );
             phi = theta1/obj.gear - q;
             k=  obj.Ks*obj.B*obj.C*cos(phi)*( 1 + (obj.r*theta2 - obj.A0)/A ) - ...
                 obj.Ks*(obj.B*obj.C*sin(phi))^2*( obj.r*theta2 - obj.A0 )/A^1.5 ;

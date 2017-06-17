@@ -6,5 +6,5 @@
 %addpath('~/lwpr/matlab/');
 addpath('/home/fan/catkin_ws/src/matlab_gen/msggen');
 curPath = pwd;
-addpath(pwd);
+addpath(genpath(pwd));
 clear curPath

@@ -1,4 +1,4 @@
-classdef Maccepavd1DOF < arm1
+classdef Mccpvd1DOF < arm1
     %MACCEPAVD1DOF Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -11,7 +11,7 @@ classdef Maccepavd1DOF < arm1
     end
     
     methods
-        function self = Maccepavd1DOF(param)
+        function self = Mccpvd1DOF(param)
             if( isfield(param,'link_len') ), param_arm.link_len = param.link_len;
             else, param_arm.link_len = 0.15;
             end

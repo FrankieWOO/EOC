@@ -2,7 +2,7 @@ classdef Mccpvd1dofModel
     %   MACCEPA-VD
     %   Detailed explanation goes here
     %   1DoF MACCEPAVD
-    %   x: q ; dq ; theta1 ; dtheta1;ddtheta1;theta2;  dtheta2;  ddtheta2;
+    %   x: q ; dq ; theta1 ; theta2; dtheta1; dtheta2;
     %   
     %   
     
@@ -68,8 +68,8 @@ classdef Mccpvd1dofModel
         %%%% control input limits
         % u1 and u2 are defined in rad; round to int and below the physical
         % limit to protect the servo
-        umax = [0.9; 2; 1] ;
-        umin = [-0.9; 0; 0] ;
+        umax = [ 1; 2; 1] ;
+        umin = [-1; 0; 0] ;
         %%%%
         
        
@@ -102,16 +102,16 @@ classdef Mccpvd1dofModel
         function model = Mccpvd1dofModel()
             
             % gear ratio from theta1 to q
-            gear1 = 3/4; %Nin = 44, Nout = 33; 
-        
-            spring_constant = 231;
-            lever_length = 0.036; %B
-            pin_displacement = 0.135; %C
-            
-            drum_radius = 0.015;
+%             gear1 = 3/4; %Nin = 44, Nout = 33; 
+%         
+%             spring_constant = 231;
+%             lever_length = 0.036; %B
+%             pin_displacement = 0.135; %C
+%             
+%             drum_radius = 0.015;
             %variable damping range
             % 110255 : 0.00848
-            damping_range = [0, 0.00848];
+%             damping_range = [0, 0.00848];
             model.actuator = ActMccpvd();
             
             
@@ -190,9 +190,8 @@ classdef Mccpvd1dofModel
            acc = model.torque_total(x,u)./model.inertia;
         end
         
-        function k = stiffness(model, x)
-            
-            k=  model.actuator.stiffness(x);
+        function k = stiffness(model, x)           
+            k =  model.actuator.stiffness(x(1),x(3),x(4));
         end
         
         
@@ -321,6 +320,12 @@ classdef Mccpvd1dofModel
                 xdot_u  = B; 
             end
             
+        end
+        
+        function dr = damping_ratio(model, x, u)
+            b = model.Df + model.damping(x,u);
+            k = model.stiffness(x,u);
+            dr = b/2*sqrt(k*model.inertia);
         end
         
     end     
