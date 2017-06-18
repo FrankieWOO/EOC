@@ -71,7 +71,7 @@ opt_param.target = target;
 opt_param.T = T;
 opt_param.dt = dt;
 % u0 can be full command sequence or just initial point
-u0 = [cost_param.target; 0; 0];
+u0 = [target; 0; 0];
 %u0 = [0; 0.1; 0];
 results = cell(Nw,Nr);
 parfor i = 1:Nw
