@@ -19,26 +19,58 @@ classdef ActMccpvd
         K2 = 0.3811;
         D2 = 0.2009;
         R2 = 0.8222;
+        
+        %%%% - damping motor - %%%%
+        gear_d = 20;
+        Kd = 0.0212;
+        Rd = 21.2;
+        ratio_load = 0.5;
+        Rl
+        max_damping_db
+        max_damping
     end
     
     methods
-        function obj = ActMccpvd()
-            
+        function obj = ActMccpvd(varargin)
+            if nargin > 0
+                param = varargin{1};
+                if isfield(param,'ratio_load'), obj.ratio_load = param.ratio_load; end
+            end
+            obj.Rl = obj.Rd*obj.ratio_load;
+            obj.max_damping_db = obj.Kd^2 * obj.gear_d^2/obj.Rd ;
+            obj.max_damping = obj.Kd^2 * obj.gear_d^2/(obj.Rd+obj.Rl);
         end
         
         %variable damping
         function d = damping(obj,duty_circle)
             % duty_circle: 0-1
-            % linear on duty-circle
-            d = obj.damping_range(1) + duty_circle.*(obj.damping_range(2)-obj.damping_range(1));
+            % 
+            % Fan: modified 18/06/17
+            d = obj.max_damping*obj.transm(duty_circle);
+            %d = obj.damping_range(1) + duty_circle.*(obj.damping_range(2)-obj.damping_range(1));
         end
         
+        function tr = transm(obj, u)
+            % u :- u3
+            tr = 1*u;
+        end
         
+        function p = p_damp_charge(obj, qdot, u)
+            p = obj.p_damp_inputelec(qdot,u)* obj.ratio_load/(1+obj.ratio_load);
+        end
+        function p = p_damp_inputelec(obj, qdot, u)
+            p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)^2/(obj.Rd+obj.Rl);
+        end
+        function p = p_damp_inputmech(obj, qdot, u)
+            p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)/(obj.Rd+obj.Rl);
+        end
         function torque_damp = torque_damping(obj,qdot, dc)
             % damping torque
             % note size(x,2) == size(u,2)
             torque_damp = qdot.*obj.damping(dc);
         end
+        
+        
         
         function torque = torque(obj, q, qdot, m1, m2, dc)
             torque = obj.torque_spring(q, m1, m2) - obj.torque_damping(qdot,dc);

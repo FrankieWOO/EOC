@@ -359,20 +359,22 @@ classdef ILQRController < OptController
         %> \author Matthew Howard (MH) matthew.howard@ed.ac.uk
         %> \date 19/06/11 19:14:08
         %
-        function [result] = run_multiple(f, j, dt, N, x0, p)
+        function [result] = run_multiple(f, j, dt, N, x0, u0, p)
             tic
                 % set ilqr parameters
                 
-                Ninit = 10;
+                Ninit = 3; % number of initial commands
                 u0s = zeros(3,Ninit);
                 tempu = rand(3,Ninit);
                 %u0s(1,:) = umin(1)+(umax(1)-umin(1))*tempu(1,:);
-                u0s(1,:) = ones(1,Ninit)*p.target;
+                u00 = u0;
+                u01 = [0;0.1;0];
+                u0s(1,:) = p.umin(1)+(p.umax(1)-p.umin(1))*tempu(1,:);
                 u0s(2,:) = p.umin(2)+(p.umax(2)-p.umin(2))*tempu(2,:);
                 u0s(3,:) = p.umin(3)+(p.umax(3)-p.umin(3))*tempu(3,:);
-                u00 = [p.target; 0; 0];
-                u0s = [u00,u0s];
-                Ninit=Ninit+1;
+                
+                u0s = [u00,u01,u0s];
+                Ninit=Ninit+1; % total inits is 5
                 
                 xs = cell(Ninit,1);
                 us = cell(Ninit,1);

@@ -1,4 +1,5 @@
-% Function for evaluating the cost along a trajectory under a given cost function
+% Function for evaluating the cost along a trajectory under a given cost
+% function and finite horizen
 % 
 % in:
 %     x     - matrix containing trajectory through state space

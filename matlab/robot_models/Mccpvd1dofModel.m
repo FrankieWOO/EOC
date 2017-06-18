@@ -48,7 +48,7 @@ classdef Mccpvd1dofModel
         D_m2 = 0.2009;
         R_m2 = 0.8222;
         
-        alpha_servo = 40; % Fan: fit from data
+        alpha_servo = 30; % Fan: fit from data
         %%%%
         
         %%%% dynamical properties
@@ -199,7 +199,7 @@ classdef Mccpvd1dofModel
         function d = damping(model,~,u)
             % duty_circle: 0-1
             % linear on duty-circle
-            d = model.actuator(u(3));
+            d = model.actuator.damping(u(3));
         end
         
         function torque = torque_spring(model, x,~)
@@ -227,7 +227,9 @@ classdef Mccpvd1dofModel
             tau_l = model.torque_spring(x)/model.actuator.gear;
             p = model.alpha_servo;
             accel = p^2*(u(1)-x(3)) - 2*p*x(5);
+            
             tau_m = tau_l + model.D_m1*x(5) + model.inertia_m1*accel;
+            %tau_m = tau_l;
         end
         
         function tau_m = tau_m2(model, x, u)
@@ -259,7 +261,29 @@ classdef Mccpvd1dofModel
             [p, p1, p2] = model.total_power(x,u);
             p_ntotal = p - d*x(2)^2*model.rege_ratio;
         end
-        
+        function [power, p1, p2] = power_mech(model,x,u)
+            tau_m1 = model.tau_m1(x,u);
+            tau_m2 = model.tau_m2(x,u);
+            p1 = tau_m1*x(5);
+            p2 = tau_m2*x(6);
+            power = p1 + p2;
+        end
+        function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec(model, x, u)
+            tau_m1 = model.tau_m1(x,u);
+            tau_m2 = model.tau_m2(x,u);
+            I1 = tau_m1/model.K_m1;
+            I2 = tau_m2/model.K_m2;
+            p1_diss = I1^2*model.R_m1;
+            p2_diss = I2^2*model.R_m2;
+            p1_mech = tau_m1*x(5);
+            p2_mech = tau_m2*x(6);
+            p1_elec = p1_diss + p1_mech;
+            p2_elec = p2_diss + p2_mech;
+            power = p1_elec + p2_elec;
+        end
+        function p = power_charge(model, x, u)
+            p = model.actuator.p_damp_charge(x(2),u(3));
+        end
         function power = net_mechpower(model,x,u)
             % net output mechanical power on motor level
             % note that motor's power has to be non-negative because energy
@@ -273,8 +297,8 @@ classdef Mccpvd1dofModel
             power = power_outmech - d*x(2)^2*model.rege_ratio;
         end
         
-        function power = output_mechpower(model,x,u)
-            % net output mechanical power on motor level
+        function [power, power_motor1, power_motor2] = output_mechpower(model,x,u)
+            % output mechanical power on motor level
             % note that motor's power has to be non-negative because energy
             % is not recoverable on motor level
             % Note: don't support vector computation currently
@@ -292,12 +316,12 @@ classdef Mccpvd1dofModel
             tau_l2 = kappa*L*r;
             power_motor1 = tau_l1*x(5);
             power_motor2 = tau_l2*x(6);
-            if (power_motor1 <= 0)
-                power_motor1 = 0;
-            end
-            if (power_motor2 <= 0)
-                power_motor2 = 0;
-            end
+            %if (power_motor1 <= 0)
+            %    power_motor1 = 0;
+            %end
+            %if (power_motor2 <= 0)
+            %    power_motor2 = 0;
+            %end
             %power_motor1 = sigmf(power_motor1, [10000 0]);
             %power_motor2 = sigmf(power_motor2, [10000 0]);
             power = power_motor1 + power_motor2;
@@ -324,7 +348,7 @@ classdef Mccpvd1dofModel
         
         function dr = damping_ratio(model, x, u)
             b = model.Df + model.damping(x,u);
-            k = model.stiffness(x,u);
+            k = model.stiffness(x);
             dr = b/2*sqrt(k*model.inertia);
         end
         
