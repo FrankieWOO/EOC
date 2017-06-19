@@ -1,8 +1,8 @@
 %%%% step 1: define robot
 % the maccepavd robot model has 8 state dimension
 
-param_act.ratio_load = 0;
-%param_act.ratio_load = 0.5;
+%param_act.ratio_load = 0;
+param_act.ratio_load = 0.5;
 robot_model = Mccpvd1dofModel();
 robot_model.actuator = ActMccpvd(param_act);
 format long
@@ -48,7 +48,7 @@ cost_param.dt = dt;
 cost_param.target = target;
 cost_param.fd = 1; % use finite difference or not
 cost_param.x0 = x0;
-f = @(x,u)robot_model.dynamics_with_jacobian(x,u);
+f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
 task = mccpvd1_reach(robot_model, cost_param);
 j = @(x,u,t)task.j_netelec(x,u,t);
 %j = @(x,u,t)task.j_noutmech(x,u,t);
@@ -77,6 +77,6 @@ opt_param.T = T;
 %u0 = [cost_param.target; 0; 0];
 u0 = [0; 0.1; 0];
 
-result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
+result = ilqr_single(f, j, dt, N, x0, u0, opt_param);
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
 

@@ -15,6 +15,7 @@ function [ res ] = traj_features( model, task, x, u, t)
     p2_elec = zeros(size(t));
     p_rege = zeros(size(t));
     p_netelec = zeros(size(t));
+    p_damp = zeros(size(t));
     res.tau_spring = zeros(size(t));
     %cost = evaluate_trajectory_cost_fh();
     for i = 1:length(t)-1
@@ -28,14 +29,15 @@ function [ res ] = traj_features( model, task, x, u, t)
          p_rege(i) = model.power_charge(x(:,i),u(:,i));
          p_netelec(i) = max(0,p1_elec(i))+max(0,p2_elec(i))-p_rege(i);
          res.tau_spring(i) = model.torque_spring(x(:,i));
+         p_damp(i) = damping(i)*x(2,i)^2 ;
     end
     
     E_elec = sum( max(0, p1_elec) )*task.dt + task.dt*sum( max(0, p2_elec) );
     E_mech = sum( max(0, p1_mech) )*task.dt + sum( max(0, p2_mech) )*task.dt;
     E_netelec = E_elec - sum(p_rege)*task.dt;
     E_netmech = E_mech - sum(p_rege)*task.dt;
-    
-    res.cost_accuracy = sum((task.target-x).^2 )*task.dt;
+    res.E_damp = sum(p_damp)*task.dt;
+    res.cost_accuracy = sum((task.target-x(1,:)).^2 )*task.dt;
     res.stiffness = stiffness;
     res.damping = damping;
     res.b = b;
@@ -55,5 +57,6 @@ function [ res ] = traj_features( model, task, x, u, t)
     res.E_netmech= E_netmech;
     res.E_rege = sum(p_rege)*task.dt;
     res.E_outmech = sum( max(0,p_outmech))*task.dt;
+    res.p_damp = p_damp;
 end
 

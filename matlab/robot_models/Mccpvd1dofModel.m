@@ -41,20 +41,21 @@ classdef Mccpvd1dofModel
         %%%% servo motor specification, reflected at gearbox output shaft
         inertia_m1 = 0.0099;
         K_m1 = 0.3811; % torque constant
-        D_m1 = 0.2009;
+        D_m1 = 0.2009 ;
         R_m1 = 0.8222;
         inertia_m2 = 0.0099;
         K_m2 = 0.3811;
         D_m2 = 0.2009;
         R_m2 = 0.8222;
         
-        alpha_servo = 30; % Fan: fit from data
+        alpha_servo = 25; % Fan: fit from data
         %%%%
         
         %%%% dynamical properties
         % Fan: estimated by data  %calculated inertia: 0.00135
-        % damper motor inertia: 
-        inertia = 0.0016 
+        % 
+        inertia
+        inertia_l = 0.0016 
         % frictions
         % viscous friction
         % Fan: 0.0022 estimated by data;
@@ -72,7 +73,7 @@ classdef Mccpvd1dofModel
         umin = [-1; 0; 0] ;
         %%%%
         
-       
+        
         
         %%%% function handlers
         fnMotorDyn
@@ -114,28 +115,28 @@ classdef Mccpvd1dofModel
 %             damping_range = [0, 0.00848];
             model.actuator = ActMccpvd();
             
+            model.inertia = model.inertia_l + model.actuator.Id;
             
-            
-            model = model.init_symfuns();
+            %model = model.init_symfuns();
 
         end
         
-        function [model] = init_symfuns(model)
-            %%%% setup symbolic dynamics and compute jacobian functions
-            xv=sym('x',[6 1]);
-            uv=sym('u',[3 1]);
-            model.symDyn = symfun(model.dynamics(xv,uv),[xv;uv]);
-            model.symDynx = jacobian(model.symDyn,xv);
-            model.symDynu = jacobian(model.symDyn,uv);
-            model.dynxfull = matlabFunction(model.symDynx);
-            model.dynufull = matlabFunction(model.symDynu);
-            model.dynx =@(x,u)model.dynxfull (x(1),x(2),x(3),x(4),x(5),x(6),u(1),u(2),u(3));
-            model.dynu =@(x,u)model.dynufull(x(1),x(2),x(3),x(4),x(5),x(6),u(1),u(2),u(3));
-            %model.dynx = matlabFunction(model.dynx);
-            %model.dynu = matlabFunction(model.dynu);
-            %%%%
-            
-        end
+%         function [model] = init_symfuns(model)
+%             %%%% setup symbolic dynamics and compute jacobian functions
+%             xv=sym('x',[6 1]);
+%             uv=sym('u',[3 1]);
+%             model.symDyn = symfun(model.dynamics(xv,uv),[xv;uv]);
+%             model.symDynx = jacobian(model.symDyn,xv);
+%             model.symDynu = jacobian(model.symDyn,uv);
+%             model.dynxfull = matlabFunction(model.symDynx);
+%             model.dynufull = matlabFunction(model.symDynu);
+%             model.dynx =@(x,u)model.dynxfull (x(1),x(2),x(3),x(4),x(5),x(6),u(1),u(2),u(3));
+%             model.dynu =@(x,u)model.dynufull(x(1),x(2),x(3),x(4),x(5),x(6),u(1),u(2),u(3));
+%             %model.dynx = matlabFunction(model.dynx);
+%             %model.dynu = matlabFunction(model.dynu);
+%             %%%%
+%             
+%         end
         
         % state-space forward dynamics
         function [xdot]= dynamics(model, x, u)
@@ -176,6 +177,44 @@ classdef Mccpvd1dofModel
 %                         daccdu; 
 %                         xdot_u2,zeros(6,1)];
 %             end
+        end
+        
+        function [xdot, xdot_x, xdot_u]= dynamics_with_jacobian_fd(model, x, u)
+            qddot = model.cmptAcc(x,u);
+            qdot = x(2,:);
+            xdot1 = [qdot; qddot] ;
+
+            % motor dynamics
+            [xdot2, xdot2_x, xdot2_u] = model.motor_dynamics_2nd(x(3:end),u(1:2));
+            
+            xdot  = [xdot1;
+                    xdot2];
+            % current motor positions
+            %m     = [x(3);x(4)] ; 
+            if nargout > 1
+            % Compute xdot_x, xdot_u using finite differences
+                %delta = 1e-6;
+                %dimX = size(x,1);
+                %dimU = size(u,1);
+    
+            % Compute derivative of acceleration w.r.t. x
+                 %daccdx = zeros(1,model.dimX);
+                 f = @(x)model.cmptAcc(x,u);
+                 daccdx = get_jacobian_fd(f,x);
+                 if iscolumn(daccdx), daccdx = daccdx';end
+                 % Compute derivative of acceleration w.r.t. u
+                 %daccdu = zeros(1,model.dimU);
+                 f = @(u)model.cmptAcc(x,u);
+                 daccdu = get_jacobian_fd(f,u);
+                 if iscolumn(daccdu), daccdu = daccdu'; end
+                 xdot_x = [0, 1, zeros(1,4);
+                             daccdx          ;
+                             zeros(4,2), xdot2_x];
+           
+                 xdot_u = [zeros(1,3);
+                         daccdu; 
+                         xdot2_u,zeros(4,1)];
+             end
         end
         
         function [xdot, xdot_x, xdot_u] = dynamics_with_jacobian(model,x,u)

@@ -360,7 +360,7 @@ classdef ILQRController < OptController
         %> \date 19/06/11 19:14:08
         %
         function [result] = run_multiple(f, j, dt, N, x0, u0, p)
-            tic
+            %tic
                 % set ilqr parameters
                 
                 Ninit = 3; % number of initial commands
@@ -410,7 +410,7 @@ classdef ILQRController < OptController
                 result.u0 = u0s(:,index_cost); %return the u0 that generate the best result
                 result.Ninit=Ninit;
                 result.u0s = u0s;
-                toc
+                %toc
                 fprintf(1,'Cost (evaluated on plant) = %f\n',cost);
         end
         

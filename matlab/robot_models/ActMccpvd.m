@@ -21,6 +21,7 @@ classdef ActMccpvd
         R2 = 0.8222;
         
         %%%% - damping motor - %%%%
+        Id = 0.00184
         gear_d = 20;
         Kd = 0.0212;
         Rd = 21.2;
