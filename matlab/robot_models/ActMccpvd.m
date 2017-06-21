@@ -9,6 +9,7 @@ classdef ActMccpvd
         Ks = 394 %231 % spring constant
         r = 0.015
         gear = 1; %3/4 % gear ratio between servo1 and link axis
+        %damping_range = [0, 0.00848]; % 0.00848
         damping_range = [0, 0.00848]; % 0.00848
         
         J1 = 0.0099;

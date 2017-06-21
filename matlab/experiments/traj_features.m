@@ -13,6 +13,8 @@ function [ res ] = traj_features( model, task, x, u, t)
     p_elec = zeros(size(t));
     p1_elec = zeros(size(t));
     p2_elec = zeros(size(t));
+    p1_diss = zeros(size(t));
+    p2_diss = zeros(size(t));
     p_rege = zeros(size(t));
     p_netelec = zeros(size(t));
     p_damp = zeros(size(t));
@@ -32,12 +34,25 @@ function [ res ] = traj_features( model, task, x, u, t)
          p_damp(i) = damping(i)*x(2,i)^2 ;
     end
     
-    E_elec = sum( max(0, p1_elec) )*task.dt + task.dt*sum( max(0, p2_elec) );
-    E_mech = sum( max(0, p1_mech) )*task.dt + sum( max(0, p2_mech) )*task.dt;
-    E_netelec = E_elec - sum(p_rege)*task.dt;
-    E_netmech = E_mech - sum(p_rege)*task.dt;
+    p1_diss = p1_elec - p1_mech;
+    p2_diss = p2_elec - p2_mech;
+    res.E_diss = sum(p1_diss)*task.dt + sum(p2_diss)*task.dt;
+    res.E_elec = sum(p1_elec)*task.dt+sum(p2_elec)*task.dt;
+    res.E_elec_posi = sum( max(0, p1_elec) )*task.dt + task.dt*sum( max(0, p2_elec) );
+    
+    res.E_mech = sum(p1_mech)*task.dt+sum(p2_mech)*task.dt;
+    res.E_mech_posi = sum( max(0, p1_mech) )*task.dt + sum( max(0, p2_mech) )*task.dt;
+    res.E_load = sum(p_outmech)*task.dt;
+    res.E_load_posi = sum( max(0,p_outmech))*task.dt;
+    res.E_rege = sum(p_rege)*task.dt;
     res.E_damp = sum(p_damp)*task.dt;
+    res.E_netelec = res.E_elec_posi - sum(p_rege)*task.dt;
+    res.E_netmech = res.E_mech_posi - sum(p_rege)*task.dt;
+    
+    
     res.cost_accuracy = sum((task.target-x(1,:)).^2 )*task.dt;
+    res.peak_speed = max(x(2,:));
+    
     res.stiffness = stiffness;
     res.damping = damping;
     res.b = b;
@@ -51,12 +66,11 @@ function [ res ] = traj_features( model, task, x, u, t)
     res.p2_elec = p2_elec;
     res.p_rege = p_rege;
     res.p_netelec = p_netelec;
-    res.E_elec = E_elec;
-    res.E_mech = E_mech;
-    res.E_netelec= E_netelec;
-    res.E_netmech= E_netmech;
-    res.E_rege = sum(p_rege)*task.dt;
-    res.E_outmech = sum( max(0,p_outmech))*task.dt;
+    
+    
+    res.p1_diss = p1_diss;
+    res.p2_diss = p2_diss;
     res.p_damp = p_damp;
+    
 end
 

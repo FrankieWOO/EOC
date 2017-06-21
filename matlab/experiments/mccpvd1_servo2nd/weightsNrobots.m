@@ -12,8 +12,11 @@ x0(3) = position0;
 x0(5) = 0;
 
 weights = linspace(0.0001,0.005,51);
+weights_effort = linspace(0.1,1,51);
 Nw = 51;
-ratio_loads = [0, 0.25, 0.5, 0.75, 1];
+%ratio_loads = [0, 0.25, 0.5, 0.75, 1];
+ratio_loads = 0;
+
 Nr = length(ratio_loads);
 robot_params = cell(Nr);
 robot_models = cell(Nr);
@@ -28,6 +31,8 @@ task_params = cell(Nw,Nr);
 task_params2 = cell(Nw,Nr);
 tasks = cell(Nw,Nr);
 tasks2 = cell(Nw,Nr);
+task_params_effort = cell(Nw,Nr);
+tasks_effort = cell(Nw,Nr);
 for i = 1:Nw
     for j = 1:Nr 
         task_params{i,j}.w = weights(i);
@@ -43,15 +48,21 @@ for i = 1:Nw
         task_params2{i,j}=task_params{i,j};
         task_params2{i,j}.w = task_params{i,j}.w*100;
         
+        task_params_effort{i,j} = task_params{i,j};
+        task_params_effort{i,j}.w = weights_effort(i);
+        
         tasks{i,j} = mccpvd1_reach(robot_models{j}, task_params{i,j});
         tasks2{i,j} = mccpvd1_reach(robot_models{j}, task_params2{i,j});
-        
+        tasks_effort{i,j} = mccpvd1_reach(robot_models{j}, task_params_effort{i,j});
         task_params{i,j}.j_netelec = @(x,u,t)tasks{i,j}.j_netelec(x,u,t);
         task_params{i,j}.j_elec = @(x,u,t)tasks{i,j}.j_elec(x,u,t);
+        task_params{i,j}.j_mech = @(x,u,t)tasks{i,j}.j_mech(x,u,t);
+        task_params{i,j}.j_netmech = @(x,u,t)tasks{i,j}.j_netmech(x,u,t);
         
         task_params2{i,j}.j_noutmech = @(x,u,t)tasks2{i,j}.j_noutmech(x,u,t);
         task_params2{i,j}.j_outmech = @(x,u,t)tasks2{i,j}.j_outmech(x,u,t);
         
+        task_params_effort{i,j}.j_effort = @(x,u,t)tasks_effort{i,j}.j_effort(x,u,t);
     end
 end
 
@@ -81,31 +92,44 @@ for i = 1:Nw
         results{i,j}.result_elec_rege1 = [];
         results{i,j}.result_outmech_rege0=[];
         results{i,j}.result_outmech_rege1=[];
+        results{i,j}.result_mech_rege0=[];
+        results{i,j}.result_mech_rege1=[];
+        results{i,j}.result_effort_rege0=[];
    end
 end
-
+%%
 parfor i = 1:Nw
     for j = 1:Nr
 %result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
-        results{i,j}.result_elec_rege0 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_elec, dt, N, x0, u0, opt_param);
-        results{i,j}.result_elec_rege1 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_netelec, dt, N, x0, u0, opt_param);
-        results{i,j}.result_outmech_rege0 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_outmech, dt, N, x0, u0, opt_param);
-        results{i,j}.result_outmech_rege1 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_noutmech, dt, N, x0, u0, opt_param);
+%         results{i,j}.result_elec_rege0 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_elec, dt, N, x0, u0, opt_param);
+%         results{i,j}.result_elec_rege1 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_netelec, dt, N, x0, u0, opt_param);
+%         results{i,j}.result_outmech_rege0 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_outmech, dt, N, x0, u0, opt_param);
+%         results{i,j}.result_outmech_rege1 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_noutmech, dt, N, x0, u0, opt_param);
+        %results{i,j}.result_mech_rege0 =ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_mech, dt, N, x0, u0, opt_param);
+        %results{i,j}.result_mech_rege1 =ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_netmech, dt, N, x0, u0, opt_param);
         
+        results{i,j}.result_effort_rege0 =ILQRController.ilqr(task_params_effort{i,j}.f, task_params_effort{i,j}.j_effort, dt, N, x0, u0, opt_param);
     end
 end
 %%
 t = 0:dt:T;
 for i=1:Nw
     for j =1:Nr
-        results{i,j}.tjf_elec_rege0 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_elec_rege0.x,...
-            results{i,j}.result_elec_rege0.u, t);
-        results{i,j}.tjf_elec_rege1 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_elec_rege1.x,...
-            results{i,j}.result_elec_rege1.u, t);
-        results{i,j}.tjf_outmech_rege0 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_outmech_rege0.x,...
-            results{i,j}.result_outmech_rege0.u, t);
-        results{i,j}.tjf_outmech_rege1 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_outmech_rege1.x,...
-            results{i,j}.result_outmech_rege1.u, t);
+%         results{i,j}.tjf_elec_rege0 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_elec_rege0.x,...
+%             results{i,j}.result_elec_rege0.u, t);
+%         results{i,j}.tjf_elec_rege1 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_elec_rege1.x,...
+%             results{i,j}.result_elec_rege1.u, t);
+%         results{i,j}.tjf_outmech_rege0 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_outmech_rege0.x,...
+%             results{i,j}.result_outmech_rege0.u, t);
+%         results{i,j}.tjf_outmech_rege1 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_outmech_rege1.x,...
+%             results{i,j}.result_outmech_rege1.u, t);
+        %results{i,j}.tjf_mech_rege0 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_mech_rege0.x,...
+        %    results{i,j}.result_mech_rege0.u, t);
+        %results{i,j}.tjf_mech_rege1 = traj_features(robot_models{j},tasks{i,j},results{i,j}.result_mech_rege1.x,...
+        %    results{i,j}.result_mech_rege1.u, t);
+        
+        results{i,j}.tjf_effort_rege0 = traj_features(robot_models{j},tasks_effort{i,j},results{i,j}.result_effort_rege0.x,...
+            results{i,j}.result_effort_rege0.u, t);
     end
 end
 

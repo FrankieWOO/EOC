@@ -12,7 +12,7 @@ target = 0.5;
 T = 2;
 dt = 0.02;
 N = T/dt + 1;
-w = 0.0001;
+w = 1;
 alpha = 0.7;
 position0 = 0;
 x0 = zeros(6,1); 
@@ -50,7 +50,9 @@ cost_param.fd = 1; % use finite difference or not
 cost_param.x0 = x0;
 f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
 task = mccpvd1_reach(robot_model, cost_param);
-j = @(x,u,t)task.j_netelec(x,u,t);
+
+j1 = @(x,u,t)task.j_effort(x,u,t);
+%j2 = @(x,u,t)task.j_effort(x,u,t);
 %j = @(x,u,t)task.j_noutmech(x,u,t);
 %costfn = CostMccvd1();
 %j = @(x,u,t)costfn.j_reach_netmech(robot_model,x,u,t,cost_param);
@@ -77,6 +79,11 @@ opt_param.T = T;
 %u0 = [cost_param.target; 0; 0];
 u0 = [0; 0.1; 0];
 
-result = ilqr_single(f, j, dt, N, x0, u0, opt_param);
-%result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
+result1 = ilqr_single(f, j1, dt, N, x0, u0, opt_param);
+%result2 = ilqr_single(f, j2, dt, N, x0, u0, opt_param);
 
+%result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
+%%
+t = 0:dt:T;
+tjf1 = traj_features(robot_model,task,result1.x,result1.u,t);
+%tjf2 = traj_features(robot_model,task,result2.x,result2.u,t);
