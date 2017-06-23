@@ -101,14 +101,14 @@ end
 parfor i = 1:Nw
     for j = 1:Nr
 %result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
-%         results{i,j}.result_elec_rege0 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_elec, dt, N, x0, u0, opt_param);
-%         results{i,j}.result_elec_rege1 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_netelec, dt, N, x0, u0, opt_param);
-%         results{i,j}.result_outmech_rege0 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_outmech, dt, N, x0, u0, opt_param);
-%         results{i,j}.result_outmech_rege1 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_noutmech, dt, N, x0, u0, opt_param);
-        %results{i,j}.result_mech_rege0 =ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_mech, dt, N, x0, u0, opt_param);
-        %results{i,j}.result_mech_rege1 =ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_netmech, dt, N, x0, u0, opt_param);
-        
-        results{i,j}.result_effort_rege0 =ILQRController.ilqr(task_params_effort{i,j}.f, task_params_effort{i,j}.j_effort, dt, N, x0, u0, opt_param);
+         results{i,j}.result_elec_rege0 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_elec, dt, N, x0, u0, opt_param);
+         results{i,j}.result_elec_rege1 = ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_netelec, dt, N, x0, u0, opt_param);
+         results{i,j}.result_outmech_rege0 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_outmech, dt, N, x0, u0, opt_param);
+         results{i,j}.result_outmech_rege1 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_noutmech, dt, N, x0, u0, opt_param);
+         results{i,j}.result_mech_rege0 =ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_mech, dt, N, x0, u0, opt_param);
+         results{i,j}.result_mech_rege1 =ILQRController.ilqr(task_params{i,j}.f, task_params{i,j}.j_netmech, dt, N, x0, u0, opt_param);
+         
+         results{i,j}.result_effort_rege0 =ILQRController.ilqr(task_params_effort{i,j}.f, task_params_effort{i,j}.j_effort, dt, N, x0, u0, opt_param);
     end
 end
 %%

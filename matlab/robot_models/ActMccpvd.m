@@ -37,6 +37,7 @@ classdef ActMccpvd
             if nargin > 0
                 param = varargin{1};
                 if isfield(param,'ratio_load'), obj.ratio_load = param.ratio_load; end
+                if isfield(param,'gear_d'), obj.gear_d = param.gear_d ; end
             end
             obj.Rl = obj.Rd*obj.ratio_load;
             obj.max_damping_db = obj.Kd^2 * obj.gear_d^2/obj.Rd ;
@@ -52,10 +53,7 @@ classdef ActMccpvd
             %d = obj.damping_range(1) + duty_circle.*(obj.damping_range(2)-obj.damping_range(1));
         end
         
-        function tr = transm(obj, u)
-            % u :- u3
-            tr = 1*u;
-        end
+       
         
         function p = p_damp_charge(obj, qdot, u)
             p = obj.p_damp_inputelec(qdot,u)* obj.ratio_load/(1+obj.ratio_load);
@@ -103,6 +101,13 @@ classdef ActMccpvd
                 obj.Ks*(obj.B*obj.C*sin(phi))^2*( obj.r*theta2 - obj.A0 )/A^1.5 ;
         end
         
+    end
+    
+    methods (Static)
+         function tr = transm(u)
+            % u :- u3
+            tr = 1*u;
+        end
     end
     
 end
