@@ -10,7 +10,7 @@ classdef ActMccpvd
         r = 0.015
         gear = 1; %3/4 % gear ratio between servo1 and link axis
         %damping_range = [0, 0.00848]; % 0.00848
-        damping_range = [0, 0.00848]; % 0.00848
+        damping_range %= [0, 0.00848]; % 0.00848
         
         J1 = 0.0099;
         K1 = 0.3811; % torque constant
