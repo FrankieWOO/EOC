@@ -2,18 +2,19 @@
 % the maccepavd robot model has 8 state dimension
 
 %param_act.ratio_load = 0;
-param_act.ratio_load = 0.5;
+param_act.ratio_load = 0;
 robot_model = Mccpvd1dofModel();
 robot_model.actuator = ActMccpvd(param_act);
 format long
 %%%% step 2: define task
 %---- user specification ----%
-target = 0.5;
+target = 0.8;
 T = 2;
 dt = 0.02;
 N = T/dt + 1;
 w = 1;
-alpha = 0.7;
+w_e = 0.001;
+%alpha = 0.7;
 position0 = 0;
 x0 = zeros(6,1); 
 x0(1) = position0;
@@ -41,7 +42,7 @@ x0(5) = 0;
 cost_param = [];
 %cost_param.w0 = 1;
 cost_param.w = w;
-cost_param.alpha = alpha;
+%cost_param.alpha = alpha;
 cost_param.epsilon = 0;
 cost_param.T = T;
 cost_param.dt = dt;
@@ -49,10 +50,12 @@ cost_param.target = target;
 cost_param.fd = 1; % use finite difference or not
 cost_param.x0 = x0;
 f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
-task = mccpvd1_reach(robot_model, cost_param);
-
-j1 = @(x,u,t)task.j_effort(x,u,t);
-%j2 = @(x,u,t)task.j_effort(x,u,t);
+task1 = mccpvd1_reach(robot_model, cost_param);
+cost_param2=cost_param;
+cost_param2.w = w_e;
+task2 = mccpvd1_reach(robot_model, cost_param2);
+j1 = @(x,u,t)task1.j_effort(x,u,t);
+j2 = @(x,u,t)task2.j_elec(x,u,t);
 %j = @(x,u,t)task.j_noutmech(x,u,t);
 %costfn = CostMccvd1();
 %j = @(x,u,t)costfn.j_reach_netmech(robot_model,x,u,t,cost_param);
@@ -80,10 +83,10 @@ opt_param.T = T;
 u0 = [0; 0.1; 0];
 
 result1 = ilqr_single(f, j1, dt, N, x0, u0, opt_param);
-%result2 = ilqr_single(f, j2, dt, N, x0, u0, opt_param);
+result2 = ilqr_single(f, j2, dt, N, x0, u0, opt_param);
 
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
 %%
 t = 0:dt:T;
-tjf1 = traj_features(robot_model,task,result1.x,result1.u,t);
-%tjf2 = traj_features(robot_model,task,result2.x,result2.u,t);
+tjf1 = traj_features(robot_model,task1,result1.x,result1.u,t);
+tjf2 = traj_features(robot_model,task2,result2.x,result2.u,t);

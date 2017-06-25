@@ -12,25 +12,28 @@
 #include <std_msgs/UInt16.h>
 #include <ros/time.h>
 //#include <Servo.h>
-
 //#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
 //#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
 
 int pin_servo1 = 11;
 int pin_servo2 = 12;
+int pin_damping = 5;
+
 int pin_jointsensor = 0;
 int pin_servo1sensor = 1;
 int pin_servo2sensor = 2;
-#define pin_damping 5
+int pin_current_damping = 5;
+int pin_current_servo1 = 3;
+int pin_current_servo2 = 4;
 float Vcc;
 
-float joint_read;
-float servo1_read;
-float servo2_read;
-int sensor_counter =0;
+//float joint_read;
+//float servo1_read;
+//float servo2_read;
+//int sensor_counter =0;
 
-const int numReadings = 4;
-int jnt_reads[numReadings];
+//const int numReadings = 4;
+//int jnt_reads[numReadings];
 
 ros::NodeHandle nh;
 maccepavd::SensorsRaw sensors_msg;
@@ -48,13 +51,12 @@ void command_cb(const maccepavd::CommandRaw& cmd_msg){
   command_buffer.u1 = cmd_msg.u1;
   command_buffer.u2 = cmd_msg.u2;
   command_buffer.u3 = cmd_msg.u3;
-  //servo1.writeMicroseconds(cmd_msg.u1);
-  //servo2.writeMicroseconds(cmd_msg.u2);
   analogWrite(pin_damping,cmd_msg.u3);
 }
 
 ros::Subscriber<maccepavd::CommandRaw> sub("command_raw",command_cb);
 ros::Publisher sensors_raw("sensors_raw",&sensors_msg);
+
 
 void setup_timers(){
   uint8_t oldSREG = SREG;
@@ -106,6 +108,7 @@ ISR(TIMER1_OVF_vect){
   
   
 }
+
 /*
 ISR(TIMER2_OVF_vect){
   //joint_read = joint_read + analogRead(pin_jointsensor);
@@ -115,6 +118,7 @@ ISR(TIMER2_OVF_vect){
   //sensor_counter += 1;
 }
 */
+
 void setupADC(){
   ADCSRA &= ~_BV( ADPS2 );
   ADCSRA |= _BV(ADPS1);
@@ -125,24 +129,17 @@ void setupADC(){
 void setup() {
   //Serial.begin(57600);
   //setupADC();
-  pinMode(pin_servo1,OUTPUT);
-  pinMode(pin_servo2,OUTPUT);
-  pinMode(pin_damping,OUTPUT);
   
   Vcc = readVcc()/1000.0;
-  joint_read = float(analogRead(pin_jointsensor));
-  servo1_read= float(analogRead(pin_servo1sensor));
-  servo2_read= float(analogRead(pin_servo2sensor));
+  //joint_read = float(analogRead(pin_jointsensor));
+  //servo1_read= float(analogRead(pin_servo1sensor));
+  //servo2_read= float(analogRead(pin_servo2sensor));
   command_buffer.u1 = 1500;
   command_buffer.u2 = 900;
   setup_timers();
-  //servo1.attach(pin_servo1);
-  //servo2.attach(pin_servo2);
-  //servo1.writeMicroseconds(1500);
-  //servo2.writeMicroseconds(900);
-  
   delay(10);
-  
+
+  //nh.getHardware()->setBaud(115200); change baudrate doesn't work
   nh.initNode();
   //nh.advertise(sensor1);
   nh.advertise(sensors_raw);
@@ -154,16 +151,26 @@ void loop() {
   //UCSR0B |= _BV(TXCIE0);
   //unsigned long t1 = micros();
 
-  joint_read = analogRead(pin_jointsensor);
-  servo1_read = analogRead(pin_servo1sensor);
+  //joint_read = analogRead(pin_jointsensor);
+  //servo1_read = analogRead(pin_servo1sensor);
   //servo1_read += float(analogRead(pin_servo1sensor));
-  servo2_read = analogRead(pin_servo2sensor);
+  //servo2_read = analogRead(pin_servo2sensor);
   //sensor_counter += 1;
   //delay(1);
   //if(sensor_counter == 4){
   
-  
-  sendmsg();
+  sensors_msg.header.stamp = nh.now();
+  sensors_msg.u1 = command_buffer.u1;
+  sensors_msg.u2 = command_buffer.u2;
+  sensors_msg.u3 = command_buffer.u3;
+  sensors_msg.joint_sensor = analogRead(pin_jointsensor)*Vcc/1023.0;
+  sensors_msg.servo1_sensor = analogRead(pin_servo1sensor)*Vcc/1023.0;
+  sensors_msg.servo2_sensor = analogRead(pin_servo2sensor)*Vcc/1023.0;
+  sensors_msg.motor_current = (analogRead(pin_current_damping)*Vcc/1023.0-Vcc/2)/0.185;
+  sensors_msg.servo1_current = (analogRead(pin_current_servo1)*Vcc/1023.0-Vcc/2)/0.1;
+  sensors_msg.servo2_current = (analogRead(pin_current_servo2)*Vcc/1023.0-Vcc/2)/0.1;
+  sensors_raw.publish(&sensors_msg);
+  //sendmsg();
   //servo1_read = 0;
   //servo2_read = 0;
   //joint_read = 0;
@@ -173,16 +180,15 @@ void loop() {
   nh.spinOnce();
 }
 
-void sendmsg(){
-  sensors_msg.header.stamp = nh.now() ;
-  sensors_msg.joint_sensor = joint_read*Vcc/1023.0;
-  sensors_msg.servo1_sensor = servo1_read*Vcc/1023.0;
-  
-  sensors_msg.servo2_sensor = servo2_read*Vcc/1023.0;
-  
-  sensors_raw.publish(&sensors_msg);
-  
-}
+//void sendmsg(){
+//  sensors_msg.header.stamp = nh.now() ;
+//  sensors_msg.joint_sensor = joint_read*Vcc/1023.0;
+//  sensors_msg.servo1_sensor = servo1_read*Vcc/1023.0;
+//  sensors_msg.servo2_sensor = servo2_read*Vcc/1023.0;
+//  
+//  sensors_raw.publish(&sensors_msg);
+//  
+//}
 
 long readVcc() {
   // Read 1.1V reference against AVcc
@@ -212,7 +218,7 @@ long readVcc() {
   return result; // Vcc in millivolts
 }
 
-int analogNoiseReducedRead(int pinNumber)
+/*int analogNoiseReducedRead(int pinNumber)
 {
  int reading;
  
@@ -232,3 +238,4 @@ int analogNoiseReducedRead(int pinNumber)
  
  return(reading);
 }
+*/
