@@ -263,8 +263,11 @@ classdef Mccpvd2Model
         end
         
         function torque = torque(model, x, u)
+            % joint torque
+            % q, qdot, m1, m2, dc
             torque1 = model.actuator.torque(x(1),x(3),x(5),x(7),u(3));
             torque2 = model.actuator.torque(x(1),x(2),x(3),x(4),u(3));
+            torque = [torque1; torque2];
         end
         
         function torque_total = torque_total(model,x,u)

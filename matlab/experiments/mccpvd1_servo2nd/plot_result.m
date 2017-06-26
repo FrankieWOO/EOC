@@ -1,5 +1,5 @@
-function [ output_args ] = plot_result( input_args )
-%PLOT_RESULT plot one of the results, used in conjuction with this experiments
+function [  ] = plot_result( result, tjf )
+% plot result containing traj, and tjf contain features evaluated on traj
     
 
 end
