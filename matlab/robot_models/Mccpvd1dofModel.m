@@ -33,22 +33,22 @@ classdef Mccpvd1dofModel
         
         
         
-        rege_ratio = 0;
+%         rege_ratio = 0;
         
         
         %%%% ---- physical design
         
         %%%% servo motor specification, reflected at gearbox output shaft
-        inertia_m1 = 0.0099;
-        K_m1 = 0.3811; % torque constant
-        D_m1 = 0.2009 ;
-        R_m1 = 0.8222;
-        inertia_m2 = 0.0099;
-        K_m2 = 0.3811;
-        D_m2 = 0.2009;
-        R_m2 = 0.8222;
+%         inertia_m1 = 0.0099;
+%         K_m1 = 0.3811; % torque constant
+%         D_m1 = 0.2009 ;
+%         R_m1 = 0.8222;
+%         inertia_m2 = 0.0099;
+%         K_m2 = 0.3811;
+%         D_m2 = 0.2009;
+%         R_m2 = 0.8222;
         
-        alpha_servo = 25; % Fan: fit from data
+         alpha_servo = 25; % Fan: fit from data
         %%%%
         
         %%%% dynamical properties
@@ -100,7 +100,7 @@ classdef Mccpvd1dofModel
     end
     
     methods
-        function model = Mccpvd1dofModel()
+        function model = Mccpvd1dofModel(varargin)
             
             % gear ratio from theta1 to q
 %             gear1 = 3/4; %Nin = 44, Nout = 33; 
@@ -113,6 +113,12 @@ classdef Mccpvd1dofModel
             %variable damping range
             % 110255 : 0.00848
 %             damping_range = [0, 0.00848];
+
+            if nargin > 0
+                param = varargin{1};
+                if isfield(param,'inertia_l'), model.inertia_l = param.inertia_l; end
+                %if isfield(param,'gear'), obj.gear_d = param.gear_d ; end
+            end
             model.actuator = ActMccpvd();
             
             model.inertia = model.inertia_l + model.actuator.Id;
@@ -267,7 +273,7 @@ classdef Mccpvd1dofModel
             p = model.alpha_servo;
             accel = p^2*(u(1)-x(3)) - 2*p*x(5);
             
-            tau_m = tau_l + model.D_m1*x(5) + model.inertia_m1*accel;
+            tau_m = tau_l + model.actuator.D1*x(5) + model.actuator.J1*accel;
             %tau_m = tau_l;
         end
         
@@ -277,15 +283,15 @@ classdef Mccpvd1dofModel
             p = model.alpha_servo;
             accel = p^2*(u(2)-x(4)) - 2*p*x(6);
             
-            tau_m = tau_l + model.D_m2*x(6) + model.inertia_m2*accel;
+            tau_m = tau_l + model.actuator.D2*x(6) + model.actuator.J2*accel;
         end
         function [p_total, p1, p2  ] = total_power(model, x, u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
-            I1 = tau_m1/model.K_m1;
-            I2 = tau_m2/model.K_m2;
-            p1e = I1^2*model.R_m1;
-            p2e = I2^2*model.R_m2;
+            I1 = tau_m1/model.actuator.K1;
+            I2 = tau_m2/model.actuator.K2;
+            p1e = I1^2*model.actuator.R1;
+            p2e = I2^2*model.actuator.R2;
             p1m = tau_m1*x(5);
             p2m = tau_m2*x(6);
             if p1m < 0, p1m =0; end
@@ -310,10 +316,10 @@ classdef Mccpvd1dofModel
         function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec(model, x, u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
-            I1 = tau_m1/model.K_m1;
-            I2 = tau_m2/model.K_m2;
-            p1_diss = I1^2*model.R_m1;
-            p2_diss = I2^2*model.R_m2;
+            I1 = tau_m1/model.actuator.K1;
+            I2 = tau_m2/model.actuator.K2;
+            p1_diss = I1^2*model.actuator.R1;
+            p2_diss = I2^2*model.actuator.R2;
             p1_mech = tau_m1*x(5);
             p2_mech = tau_m2*x(6);
             p1_elec = p1_diss + p1_mech;
@@ -352,7 +358,8 @@ classdef Mccpvd1dofModel
             
             tau_s = model.torque_spring(x,u);
             tau_l1 = tau_s/gear;
-            tau_l2 = kappa*L*r;
+            tau_l2 = model.actuator.spring_displacement(x(1),x(3),x(4))*model.actuator.Ks;
+            
             power_motor1 = tau_l1*x(5);
             power_motor2 = tau_l2*x(6);
             %if (power_motor1 <= 0)
@@ -368,6 +375,9 @@ classdef Mccpvd1dofModel
         
         function [ xdot, xdot_x, xdot_u ] = motor_dynamics_2nd(model, x, u)
             p = model.alpha_servo;
+            tau_l1 = model.torque_spring(x)/model.actuator.gear;
+            tau_l2 = model.actuator.spring_displacement(x(1),x(3),x(4))*model.actuator.Ks;
+            
             A = [ 0, 0, 1, 0;
                 0, 0, 0, 1;
                 -p^2, 0, -2*p, 0;
@@ -376,7 +386,7 @@ classdef Mccpvd1dofModel
                 0, 0;
                 p^2, 0;
                 0, p^2];
-            xdot = A*x + B*u;
+            xdot = A*x + B*u - [0;0; tau_l1; tau_l2];
             
             if nargout > 1
                 xdot_x  = A;  

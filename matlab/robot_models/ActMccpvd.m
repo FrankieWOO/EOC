@@ -38,6 +38,14 @@ classdef ActMccpvd
                 param = varargin{1};
                 if isfield(param,'ratio_load'), obj.ratio_load = param.ratio_load; end
                 if isfield(param,'gear_d'), obj.gear_d = param.gear_d ; end
+                if isfield(param,'Kd'), obj.Kd = param.Kd ; end
+                if isfield(param,'J1'), obj.J1 = param.J1; end
+                if isfield(param,'J2'), obj.J2 = param.J2; end
+                if isfield(param,'K1'), obj.K1 = param.K1; end
+                if isfield(param,'K2'), obj.K2 = param.K2; end
+                if isfield(param,'R1'), obj.R1 = param.R1; end
+                if isfield(param,'R2'), obj.R2 = param.R2; end
+                if isfield(param,'Ks'), obj.Ks = param.Ks; end
             end
             obj.Rl = obj.Rd*obj.ratio_load;
             obj.max_damping_db = obj.Kd^2 * obj.gear_d^2/obj.Rd ;

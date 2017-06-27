@@ -295,10 +295,10 @@ classdef Mccpvd2Model
         function [p_total, p1, p2  ] = total_power(model, x, u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
-            I1 = tau_m1/model.K_m1;
-            I2 = tau_m2/model.K_m2;
-            p1e = I1^2*model.R_m1;
-            p2e = I2^2*model.R_m2;
+            I1 = tau_m1/model.actuator.K1;
+            I2 = tau_m2/model.actuator.K2;
+            p1e = I1^2*model.actuator.R1;
+            p2e = I2^2*model.actuator.R2;
             p1m = tau_m1*x(5);
             p2m = tau_m2*x(6);
             if p1m < 0, p1m =0; end

@@ -2,8 +2,21 @@
 % the maccepavd robot model has 8 state dimension
 
 %param_act.ratio_load = 0;
-param_act.ratio_load = 0;
-robot_model = Mccpvd1dofModel();
+param_act.ratio_load = 1;
+param_act.gear_d = 100;
+param_act.Kd = 0.1;
+param_act.K1 = 1;
+param_act.K2 = 1;
+param_act.R1 = 0.2;
+param_act.R2 = 0.2;
+param_act.Ks = 1000;
+%param_act.J1 = 0.001;
+%param_act.J2 = 0.001;
+
+
+robot_param.inertia_l = 0.1;
+robot_model = Mccpvd1dofModel(robot_param);
+%robot_model.inertia_l =0.01;
 robot_model.actuator = ActMccpvd(param_act);
 format long
 %%%% step 2: define task
@@ -55,7 +68,7 @@ cost_param2=cost_param;
 cost_param2.w = w_e;
 task2 = mccpvd1_reach(robot_model, cost_param2);
 j1 = @(x,u,t)task1.j_effort(x,u,t);
-j2 = @(x,u,t)task2.j_elec(x,u,t);
+j2 = @(x,u,t)task2.j_netelec(x,u,t);
 %j = @(x,u,t)task.j_noutmech(x,u,t);
 %costfn = CostMccvd1();
 %j = @(x,u,t)costfn.j_reach_netmech(robot_model,x,u,t,cost_param);
