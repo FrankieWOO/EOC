@@ -21,4 +21,6 @@ for n=1:N-1
 	x(:,n+1) = simulate_step ( f, x(:,n), u(:,n), p );
 end
 
+end
+
 

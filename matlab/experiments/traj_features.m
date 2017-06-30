@@ -11,8 +11,12 @@ function [ res ] = traj_features( model, task, x, u, t)
     p1_mech = zeros(size(t));
     p2_mech = zeros(size(t));
     p_elec = zeros(size(t));
+    p_elec2 = zeros(size(t));
     p1_elec = zeros(size(t));
     p2_elec = zeros(size(t));
+    p1_elec2 = zeros(size(t));
+    p2_elec2 = zeros(size(t));
+    
     p1_diss = zeros(size(t));
     p2_diss = zeros(size(t));
     p_rege = zeros(size(t));
@@ -28,6 +32,8 @@ function [ res ] = traj_features( model, task, x, u, t)
          p_outmech(i) = model.output_mechpower(x(:,i),u(:,i));
          [p_mech(i),p1_mech(i),p2_mech(i)] = model.power_mech(x(:,i),u(:,i));
          [p_elec(i),p1_elec(i),p2_elec(i)] = model.power_elec(x(:,i),u(:,i));
+         [p_elec2(i),p1_elec2(i),p2_elec2(i)] = model.power_elec2(x(:,i),u(:,i));
+         
          p_rege(i) = model.power_charge(x(:,i),u(:,i));
          p_netelec(i) = max(0,p1_elec(i))+max(0,p2_elec(i))-p_rege(i);
          res.tau_spring(i) = model.torque_spring(x(:,i));
@@ -38,6 +44,7 @@ function [ res ] = traj_features( model, task, x, u, t)
     p2_diss = p2_elec - p2_mech;
     res.E_diss = sum(p1_diss)*task.dt + sum(p2_diss)*task.dt;
     res.E_elec = sum(p1_elec)*task.dt+sum(p2_elec)*task.dt;
+    res.E_elec2 = sum(p1_elec2)*task.dt+sum(p2_elec2)*task.dt;
     res.E_elec_posi = sum( max(0, p1_elec) )*task.dt + task.dt*sum( max(0, p2_elec) );
     
     res.E_mech = sum(p1_mech)*task.dt+sum(p2_mech)*task.dt;

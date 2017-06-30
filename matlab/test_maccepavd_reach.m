@@ -5,10 +5,10 @@
 param_act.ratio_load = 1;
 param_act.gear_d = 100;
 param_act.Kd = 0.1;
-param_act.K1 = 1;
-param_act.K2 = 1;
-param_act.R1 = 0.5;
-param_act.R2 = 0.5;
+%param_act.K1 = 1;
+%param_act.K2 = 1;
+%param_act.R1 = 0.5;
+%param_act.R2 = 0.5;
 param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
@@ -26,7 +26,7 @@ T = 2;
 dt = 0.02;
 N = T/dt + 1;
 w = 1;
-w_e = 0.005;
+w_e = 0.001;
 %alpha = 0.7;
 position0 = 0;
 x0 = zeros(6,1); 
@@ -101,5 +101,13 @@ result2 = ilqr_single(f, j2, dt, N, x0, u0, opt_param);
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
 %%
 t = 0:dt:T;
+tsim = 0:0.001:T;
+usim1 = scale_controlSeq(result1.u,t,tsim);
+psim.solver = 'rk4';
+psim.dt = 0.001;
+[xsim1] = simulate_feedforward(x0,f,usim1,psim);
+
 tjf1 = traj_features(robot_model,task1,result1.x,result1.u,t);
 tjf2 = traj_features(robot_model,task2,result2.x,result2.u,t);
+tjf1sim = task1.traj_features(xsim1,usim1,tsim,0.001);
+

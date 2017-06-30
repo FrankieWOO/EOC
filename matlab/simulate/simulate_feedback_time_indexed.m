@@ -14,7 +14,7 @@
 % 
 function [x,u] = simulate_feedback_time_indexed ( x0, f, pi, p )
 
-dt= p.dt;
+%dt= p.dt;
 N = p.N;
 x = nan(size(x0,1),N); x(:,1)=x0; % initialise x
 u = nan(size(pi(x0,1),1),N-1);      % initialise u

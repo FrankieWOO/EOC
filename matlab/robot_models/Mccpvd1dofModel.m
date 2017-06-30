@@ -313,7 +313,23 @@ classdef Mccpvd1dofModel
             p2 = tau_m2*x(6);
             power = p1 + p2;
         end
+        
         function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec(model, x, u)
+            tau_m1 = model.tau_m1(x,u);
+            tau_m2 = model.tau_m2(x,u);
+            I1 = tau_m1/model.actuator.K1;
+            I2 = tau_m2/model.actuator.K2;
+            p1_diss = I1^2*model.actuator.R1;
+            p2_diss = I2^2*model.actuator.R2;
+            %p1_mech = tau_m1*x(5);
+            %p2_mech = tau_m2*x(6);
+            p1_elec = I1*7.4;
+            p2_elec = I2*7.4;
+            power = p1_elec + p2_elec;
+            
+        end
+        
+        function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec2(model, x, u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
             I1 = tau_m1/model.actuator.K1;
@@ -326,6 +342,8 @@ classdef Mccpvd1dofModel
             p2_elec = p2_diss + p2_mech;
             power = p1_elec + p2_elec;
         end
+        
+        
         function p = power_charge(model, x, u)
             p = model.actuator.p_damp_charge(x(2),u(3));
         end
