@@ -117,6 +117,8 @@ classdef Mccpvd1dofModel
             if nargin > 0
                 param = varargin{1};
                 if isfield(param,'inertia_l'), model.inertia_l = param.inertia_l; end
+                if isfield(param,'Df'), model.Df = param.Df; end
+                
                 %if isfield(param,'gear'), obj.gear_d = param.gear_d ; end
             end
             model.actuator = ActMccpvd();
@@ -232,7 +234,7 @@ classdef Mccpvd1dofModel
         end
         
         function acc = cmptAcc(model,x,u)
-           acc = model.torque_total(x,u)./model.inertia;
+           acc = model.torque_total(x,u)/model.inertia;
         end
         
         function k = stiffness(model, x)           
@@ -344,7 +346,7 @@ classdef Mccpvd1dofModel
         end
         
         
-        function p = power_charge(model, x, u)
+        function p = power_rege(model, x, u)
             p = model.actuator.p_damp_charge(x(2),u(3));
         end
         function power = net_mechpower(model,x,u)
@@ -404,6 +406,8 @@ classdef Mccpvd1dofModel
                 0, 0;
                 p^2, 0;
                 0, p^2];
+            %xdot = A*x + B*u;
+            
             xdot = A*x + B*u - [0;0; tau_l1; tau_l2];
             
             if nargout > 1
@@ -416,7 +420,7 @@ classdef Mccpvd1dofModel
         function dr = damping_ratio(model, x, u)
             b = model.Df + model.damping(x,u);
             k = model.stiffness(x);
-            dr = b/2*sqrt(k*model.inertia);
+            dr = b/(2*sqrt(k*model.inertia));
         end
         
     end     

@@ -18,6 +18,7 @@ classdef mccpvd1_reach
     
     methods
         function self = mccpvd1_reach(robot_model, p)
+            if isfield(p,'w0'), self.w0 = p.w0;end
             self.robot_model = robot_model;
             self.target = p.target;
             self.w = p.w;
@@ -253,7 +254,7 @@ classdef mccpvd1_reach
             end
         end
         
-        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_net2(self,x,u,t)
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_tf_effort(self,x,u,t)
             %net total energy cost
             if (isnan(u))
                 % final cost
@@ -265,7 +266,7 @@ classdef mccpvd1_reach
                     l_xx = get_hessian_fd(flJ,x);
                 end
             else
-                fl = @(x,u,t) self.costr_net2(x,u);
+                fl = @(x,u,t) self.costr_effort(x,u);
                 l = fl(x,u,t);
                 
                 
@@ -282,7 +283,7 @@ classdef mccpvd1_reach
             end
         end
         
-        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_net3(self,x,u,t)
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_tf_effort_rege(self,x,u,t)
             %net total energy cost
             if (isnan(u))
                 % final cost
@@ -294,7 +295,7 @@ classdef mccpvd1_reach
                     l_xx = get_hessian_fd(flJ,x);
                 end
             else
-                fl = @(x,u,t) self.costr_net3(x,u,t);
+                fl = @(x,u,t) self.costr_effort_rege(x,u);
                 l = fl(x,u,t);
                 
                 
@@ -381,6 +382,12 @@ classdef mccpvd1_reach
             ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
             c = c1*self.w0 + sum(u.^2,1) * self.epsilon + ce*self.w;
         end
+        function c = costr_effort_rege(self, x,u)
+            c1 = (x(1) - self.target).^2;
+            ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
+            p_rege = self.robot_model.power_rege(x,u);
+            c = c1*self.w0 + sum(u.^2,1) * self.epsilon + ce*self.w - p_rege;
+        end
         function c = costr_net(self, x, u)
             c1 = (x(1) - self.target).^2;
             
@@ -414,6 +421,7 @@ classdef mccpvd1_reach
         end
         
         function c= costf(self, x)
+            % penalise position error at T multiply by dt
             c = (x(1) - self.target).^2 * self.dt * self.w0;
         end
         
@@ -423,7 +431,7 @@ classdef mccpvd1_reach
         end
         function c = costf3(self, x)
             % penalise both position and speed errors at T
-            c = ((x(1) - self.target)^2 + x(2)^2)*self.w0 ;
+            c = ((x(1) - self.target)^2 + x(2)^2)*1 ;
         end
         
         function [ res ] = traj_features(self, x, u, t, dt)
@@ -462,7 +470,7 @@ classdef mccpvd1_reach
                 [p_elec(i),p1_elec(i),p2_elec(i)] = self.robot_model.power_elec(x(:,i),u(:,i));
                 [p_elec2(i),p1_elec2(i),p2_elec2(i)] = self.robot_model.power_elec2(x(:,i),u(:,i));
                 
-                p_rege(i) = self.robot_model.power_charge(x(:,i),u(:,i));
+                p_rege(i) = self.robot_model.power_rege(x(:,i),u(:,i));
                 p_netelec(i) = max(0,p1_elec(i))+max(0,p2_elec(i))-p_rege(i);
                 res.tau_spring(i) = self.robot_model.torque_spring(x(:,i));
                 p_damp(i) = damping(i)*x(2,i)^2 ;

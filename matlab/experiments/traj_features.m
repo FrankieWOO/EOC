@@ -1,30 +1,32 @@
-function [ res ] = traj_features( model, task, x, u, t)
+function [ res ] = traj_features( model, x, u, dt)
 %TRAJ_FEATURES calculate all the features that can be used to evaluate and
 %characterise a trajectory and its performance
-    
-    stiffness = zeros(size(t));
-    damping = zeros(size(t)); % variable damping
-    b = zeros(size(t));
-    damping_ratio = zeros(size(t));
-    p_outmech = zeros(size(t)); % tau_load * v
-    p_mech = zeros(size(t)); % tau_m * v
-    p1_mech = zeros(size(t));
-    p2_mech = zeros(size(t));
-    p_elec = zeros(size(t));
-    p_elec2 = zeros(size(t));
-    p1_elec = zeros(size(t));
-    p2_elec = zeros(size(t));
-    p1_elec2 = zeros(size(t));
-    p2_elec2 = zeros(size(t));
-    
-    p1_diss = zeros(size(t));
-    p2_diss = zeros(size(t));
-    p_rege = zeros(size(t));
-    p_netelec = zeros(size(t));
-    p_damp = zeros(size(t));
-    res.tau_spring = zeros(size(t));
+    Nx = size(x,2);
+    Nu = size(u,2);
+    stiffness = zeros(1,Nu);
+    damping = zeros(1,Nu); % variable damping
+    b = zeros(1,Nu);
+    damping_ratio = zeros(1,Nu);
+    p_outmech = zeros(1,Nu); % tau_load * v
+    p_mech = zeros(1,Nu); % tau_m * v
+    p1_mech = zeros(1,Nu);
+    p2_mech = zeros(1,Nu);
+    p_elec = zeros(1,Nu);
+    p_elec2 = zeros(1,Nu);
+    p1_elec = zeros(1,Nu);
+    p2_elec = zeros(1,Nu);
+    p1_elec2 = zeros(1,Nu);
+    p2_elec2 = zeros(1,Nu);
+    p_effort = zeros(1,Nu);
+    p1_diss = zeros(1,Nu);
+    p2_diss = zeros(1,Nu);
+    p_rege = zeros(1,Nu);
+    p_netelec = zeros(1,Nu);
+    p_damp = zeros(1,Nu);
+    res.tau_spring = zeros(1,Nu);
+    p_link = zeros(1,Nu);
     %cost = evaluate_trajectory_cost_fh();
-    for i = 1:length(t)-1
+    for i = 1:Nu
          stiffness(i) = model.stiffness(x(:,i));
          damping(i) = model.damping(x,u(:,i));
          b(i) = damping(i) + model.Df;
@@ -34,30 +36,32 @@ function [ res ] = traj_features( model, task, x, u, t)
          [p_elec(i),p1_elec(i),p2_elec(i)] = model.power_elec(x(:,i),u(:,i));
          [p_elec2(i),p1_elec2(i),p2_elec2(i)] = model.power_elec2(x(:,i),u(:,i));
          
-         p_rege(i) = model.power_charge(x(:,i),u(:,i));
+         p_rege(i) = model.power_rege(x(:,i),u(:,i));
          p_netelec(i) = max(0,p1_elec(i))+max(0,p2_elec(i))-p_rege(i);
          res.tau_spring(i) = model.torque_spring(x(:,i));
+         p_link(i) = res.tau_spring(i)*x(2,i);
          p_damp(i) = damping(i)*x(2,i)^2 ;
+         p_effort(i) = (u(1,i)-x(3,i))^2 + (u(2,i)-x(4,i))^2;
     end
     
     p1_diss = p1_elec - p1_mech;
     p2_diss = p2_elec - p2_mech;
-    res.E_diss = sum(p1_diss)*task.dt + sum(p2_diss)*task.dt;
-    res.E_elec = sum(p1_elec)*task.dt+sum(p2_elec)*task.dt;
-    res.E_elec2 = sum(p1_elec2)*task.dt+sum(p2_elec2)*task.dt;
-    res.E_elec_posi = sum( max(0, p1_elec) )*task.dt + task.dt*sum( max(0, p2_elec) );
+    res.E_diss = sum(p1_diss)*dt + sum(p2_diss)*dt;
+    res.E_elec = sum(p1_elec)*dt+sum(p2_elec)*dt;
+    res.E_elec2 = sum(p1_elec2)*dt+sum(p2_elec2)*dt;
+    res.E_elec_posi = sum( max(0, p1_elec) )*dt + dt*sum( max(0, p2_elec) );
     
-    res.E_mech = sum(p1_mech)*task.dt+sum(p2_mech)*task.dt;
-    res.E_mech_posi = sum( max(0, p1_mech) )*task.dt + sum( max(0, p2_mech) )*task.dt;
-    res.E_load = sum(p_outmech)*task.dt;
-    res.E_load_posi = sum( max(0,p_outmech))*task.dt;
-    res.E_rege = sum(p_rege)*task.dt;
-    res.E_damp = sum(p_damp)*task.dt;
-    res.E_netelec = res.E_elec_posi - sum(p_rege)*task.dt;
-    res.E_netmech = res.E_mech_posi - sum(p_rege)*task.dt;
-    
-    
-    res.cost_accuracy = sum((task.target-x(1,:)).^2 )*task.dt;
+    res.E_mech = sum(p1_mech)*dt+sum(p2_mech)*dt;
+    res.E_mech_posi = sum( max(0, p1_mech) )*dt + sum( max(0, p2_mech) )*dt;
+    res.E_load = sum(p_outmech)*dt;
+    res.E_load_posi = sum( max(0,p_outmech))*dt;
+    res.E_rege = sum(p_rege)*dt;
+    res.E_damp = sum(p_damp)*dt;
+    res.E_netelec = res.E_elec_posi - sum(p_rege)*dt;
+    res.E_netmech = res.E_mech_posi - sum(p_rege)*dt;
+    res.E_link = sum(p_link)*dt;
+    res.rege_ratio = res.E_rege/res.E_link;
+    %res.cost_accuracy = sum((task.target-x(1,:)).^2 )*dt;
     res.peak_speed = max(x(2,:));
     
     res.stiffness = stiffness;
@@ -73,7 +77,8 @@ function [ res ] = traj_features( model, task, x, u, t)
     res.p2_elec = p2_elec;
     res.p_rege = p_rege;
     res.p_netelec = p_netelec;
-    
+    res.p_link = p_link;
+    res.p_effort = p_effort;
     
     res.p1_diss = p1_diss;
     res.p2_diss = p2_diss;

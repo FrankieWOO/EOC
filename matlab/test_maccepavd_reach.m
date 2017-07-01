@@ -1,32 +1,31 @@
 %%%% step 1: define robot
+format long
 % the maccepavd robot model has 8 state dimension
 
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 100;
-param_act.Kd = 0.1;
+param_act.gear_d = 40;
+%param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
 %param_act.R1 = 0.5;
 %param_act.R2 = 0.5;
-param_act.Ks = 500;
+%param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-
-
-robot_param.inertia_l = 0.1;
+robot_param.inertia_l = 0.0016;
+robot_param.Df = 0.01;
 robot_model = Mccpvd1dofModel(robot_param);
-%robot_model.inertia_l =0.01;
 robot_model.actuator = ActMccpvd(param_act);
-format long
+
 %%%% step 2: define task
 %---- user specification ----%
 target = 0.8;
-T = 2;
+T = 1;
 dt = 0.02;
 N = T/dt + 1;
 w = 1;
-w_e = 0.001;
+w_e = 0.00001;
 %alpha = 0.7;
 position0 = 0;
 x0 = zeros(6,1); 
@@ -55,6 +54,7 @@ x0(5) = 0;
 cost_param = [];
 %cost_param.w0 = 1;
 cost_param.w = w;
+cost_param.w0 = 0;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 0;
 cost_param.T = T;
@@ -67,8 +67,8 @@ task1 = mccpvd1_reach(robot_model, cost_param);
 cost_param2=cost_param;
 cost_param2.w = w_e;
 task2 = mccpvd1_reach(robot_model, cost_param2);
-j1 = @(x,u,t)task1.j_effort(x,u,t);
-j2 = @(x,u,t)task2.j_netelec(x,u,t);
+j1 = @(x,u,t)task1.j_tf_effort(x,u,t);
+j2 = @(x,u,t)task1.j_tf_effort_rege(x,u,t);
 %j = @(x,u,t)task.j_noutmech(x,u,t);
 %costfn = CostMccvd1();
 %j = @(x,u,t)costfn.j_reach_netmech(robot_model,x,u,t,cost_param);
@@ -107,7 +107,18 @@ psim.solver = 'rk4';
 psim.dt = 0.001;
 [xsim1] = simulate_feedforward(x0,f,usim1,psim);
 
-tjf1 = traj_features(robot_model,task1,result1.x,result1.u,t);
-tjf2 = traj_features(robot_model,task2,result2.x,result2.u,t);
+tjf1 = traj_features(robot_model,result1.x,result1.u,0.02);
+tjf2 = traj_features(robot_model,result2.x,result2.u,0.02);
 tjf1sim = task1.traj_features(xsim1,usim1,tsim,0.001);
 
+%%
+% test simple traj
+
+Nu = 100;
+u = repmat([0.8;0;0],1,Nu);
+p.dt = 2/Nu;
+p.solver='rk4';
+t = 0:p.dt:2;
+x = simulate_feedforward(x0,f,u,p);
+tjf = traj_features(robot_model, task1, x,u,t);
+plot(x(1,:))
