@@ -48,7 +48,7 @@ classdef Mccpvd1dofModel
 %         D_m2 = 0.2009;
 %         R_m2 = 0.8222;
         
-         alpha_servo = 25; % Fan: fit from data
+         alpha_servo = 30; % Fan: fit from data
         %%%%
         
         %%%% dynamical properties
@@ -236,11 +236,17 @@ classdef Mccpvd1dofModel
         function acc = cmptAcc(model,x,u)
            acc = model.torque_total(x,u)/model.inertia;
         end
+        %%%% dynamics %%%%
         
+        %%%%---- dynamical properties
         function k = stiffness(model, x)           
             k =  model.actuator.stiffness(x(1),x(3),x(4));
         end
-        
+        function dr = damping_ratio(model, x, u)
+            b = model.Df + model.damping(x,u);
+            k = model.stiffness(x);
+            dr = b/(2*sqrt(k*model.inertia));
+        end
         
         %variable damping
         function d = damping(model,~,u)
@@ -248,66 +254,55 @@ classdef Mccpvd1dofModel
             % linear on duty-circle
             d = model.actuator.damping(u(3));
         end
+        %%%% ---- dynamical properties ---- %%%%
         
+        %%%%---- torques ----%%%%
+        % Spring Torque
         function torque = torque_spring(model, x,~)
             %sprdis = model.spring_displacement(x,u);
             %spring_force = sprdis*model.spring_constant;
             
             torque = model.actuator.torque_spring(x(1),x(3),x(4));
         end
-        
+        % Variable Damping torque
         function torque_damp = torque_damping(model,x,u)
             % note size(x,2) == size(u,2)
             torque_damp = model.actuator.torque_damping(x(2),u(3));
         end
-        
+        % Actuator torque
         function torque = torque(model, x, u)
+            % actuator torque
             torque = model.actuator.torque(x(1),x(2),x(3),x(4),u(3));
         end
-        
+        % Torque including friction, gravity
         function torque_total = torque_total(model,x,u)
-            torque_total = model.actuator.torque(x(1),x(2),x(3),x(4),u(3)) - model.Df*x(2);
+            torque_total = model.actuator.torque(x(1),x(2),x(3),x(4),u(3))...
+                - model.Df*x(2);
         end
+        %%%%---- torques ----%%%%
         
+        %%%%---- motor torques ----%%%%
         function tau_m = tau_m1(model, x, u)
             % tau_m of servo1 at servo's shaft
-            tau_l = model.torque_spring(x)/model.actuator.gear;
+            tau_l = model.actuator.torque_load1(x(1),x(3),x(4));
             p = model.alpha_servo;
             accel = p^2*(u(1)-x(3)) - 2*p*x(5);
             
-            tau_m = tau_l + model.actuator.D1*x(5) + model.actuator.J1*accel;
+            tau_m = tau_l + model.actuator.J1*accel + model.actuator.D1*x(5) ;
             %tau_m = tau_l;
         end
         
         function tau_m = tau_m2(model, x, u)
             % tau_m of servo2 at servo's shaft
-            tau_l = model.actuator.spring_displacement(x(1),x(3),x(4))*model.actuator.Ks;
+            tau_l = model.actuator.torque_load2(x(1),x(3),x(4));
             p = model.alpha_servo;
             accel = p^2*(u(2)-x(4)) - 2*p*x(6);
             
             tau_m = tau_l + model.actuator.D2*x(6) + model.actuator.J2*accel;
         end
-        function [p_total, p1, p2  ] = total_power(model, x, u)
-            tau_m1 = model.tau_m1(x,u);
-            tau_m2 = model.tau_m2(x,u);
-            I1 = tau_m1/model.actuator.K1;
-            I2 = tau_m2/model.actuator.K2;
-            p1e = I1^2*model.actuator.R1;
-            p2e = I2^2*model.actuator.R2;
-            p1m = tau_m1*x(5);
-            p2m = tau_m2*x(6);
-            if p1m < 0, p1m =0; end
-            if p2m < 0, p2m =0; end
-            
-            p_total = p1e + p2e + p1m + p2m ;
-            p1 = p1e + p1m;
-            p2 = p2e + p2m;
-        end
-        function [p_ntotal, p1, p2  ] = net_total_power(model, x, u)
-            d = model.damping(u(3));
-            [p, p1, p2] = model.total_power(x,u);
-            p_ntotal = p - d*x(2)^2*model.rege_ratio;
-        end
+        %%%% ---- motor torques
+        
+        %%%% power
         function [power, p1, p2] = power_mech(model,x,u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
@@ -316,7 +311,7 @@ classdef Mccpvd1dofModel
             power = p1 + p2;
         end
         
-        function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec(model, x, u)
+        function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec2(model, x, u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
             I1 = tau_m1/model.actuator.K1;
@@ -331,7 +326,7 @@ classdef Mccpvd1dofModel
             
         end
         
-        function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec2(model, x, u)
+        function [power, p1_elec, p2_elec, p1_diss, p2_diss] = power_elec(model, x, u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
             I1 = tau_m1/model.actuator.K1;
@@ -345,43 +340,45 @@ classdef Mccpvd1dofModel
             power = p1_elec + p2_elec;
         end
         
-        
+        function p = power_damp(model,x,u)
+            p = model.damping(x,u)*x(2)^2 ;
+        end
         function p = power_rege(model, x, u)
             p = model.actuator.p_damp_charge(x(2),u(3));
         end
-        function power = net_mechpower(model,x,u)
+        function power = net_power_load(model,x,u)
             % net output mechanical power on motor level
             % note that motor's power has to be non-negative because energy
             % is not recoverable on motor level
             % Note: don't support vector computation currently
-            power_outmech = model.output_mechpower(x,u);
-            d = model.actuator.damping(u(3));
+            power_outmech = model.power_load(x,u);
+            
             %power_motor1 = sigmf(power_motor1, [10000 0]);
             %power_motor2 = sigmf(power_motor2, [10000 0]);
             
-            power = power_outmech - d*x(2)^2*model.rege_ratio;
+            power = power_outmech - model.power_rege(x,u);
         end
         
-        function [power, power_motor1, power_motor2] = output_mechpower(model,x,u)
+        function [power, power_load1, power_load2] = power_load(model,x,u)
             % output mechanical power on motor level
             % note that motor's power has to be non-negative because energy
             % is not recoverable on motor level
             % Note: don't support vector computation currently
-            kappa = model.actuator.Ks;
-            B = model.actuator.B;
-            C = model.actuator.C;
-            r = model.actuator.r;
-            gear = model.actuator.gear;
-            A0 = model.actuator.A0;
-            A = sqrt(B^2+C^2 - 2*B*C*cos(x(3)/gear-x(1)));
-            L = A + r*x(4) - A0; 
+%             kappa = model.actuator.Ks;
+%             B = model.actuator.B;
+%             C = model.actuator.C;
+%             r = model.actuator.r;
+%             gear = model.actuator.gear;
+%             A0 = model.actuator.A0;
+%             A = sqrt(B^2+C^2 - 2*B*C*cos(x(3)/gear-x(1)));
+%             L = A + r*x(4) - A0; 
             
             tau_s = model.torque_spring(x,u);
-            tau_l1 = tau_s/gear;
-            tau_l2 = model.actuator.spring_displacement(x(1),x(3),x(4))*model.actuator.Ks;
+            tau_l1 = tau_s/model.actuator.gear;
+            tau_l2 = model.actuator.torque_load2(x(1),x(3),x(4));
             
-            power_motor1 = tau_l1*x(5);
-            power_motor2 = tau_l2*x(6);
+            power_load1 = tau_l1*x(5);
+            power_load2 = tau_l2*x(6);
             %if (power_motor1 <= 0)
             %    power_motor1 = 0;
             %end
@@ -390,14 +387,19 @@ classdef Mccpvd1dofModel
             %end
             %power_motor1 = sigmf(power_motor1, [10000 0]);
             %power_motor2 = sigmf(power_motor2, [10000 0]);
-            power = power_motor1 + power_motor2;
+            power = power_load1 + power_load2;
         end
+        
+        function [p] = power_link(model, x, u)
+            tau_spring = model.torque_spring(x,u);
+            p = tau_spring*x(2);
+        end
+        %%%% power %%%%
         
         function [ xdot, xdot_x, xdot_u ] = motor_dynamics_2nd(model, x, u)
             p = model.alpha_servo;
             tau_l1 = model.torque_spring(x)/model.actuator.gear;
-            tau_l2 = model.actuator.spring_displacement(x(1),x(3),x(4))*model.actuator.Ks;
-            
+            tau_l2 = model.actuator.torque_load2(x(1),x(3),x(4));
             A = [ 0, 0, 1, 0;
                 0, 0, 0, 1;
                 -p^2, 0, -2*p, 0;
@@ -408,7 +410,7 @@ classdef Mccpvd1dofModel
                 0, p^2];
             %xdot = A*x + B*u;
             
-            xdot = A*x + B*u - [0;0; tau_l1; tau_l2];
+            xdot = A*x + B*u - [0;0; tau_l1/model.actuator.J1; tau_l2/model.actuator.J2];
             
             if nargout > 1
                 xdot_x  = A;  
@@ -417,11 +419,7 @@ classdef Mccpvd1dofModel
             
         end
         
-        function dr = damping_ratio(model, x, u)
-            b = model.Df + model.damping(x,u);
-            k = model.stiffness(x);
-            dr = b/(2*sqrt(k*model.inertia));
-        end
+        
         
     end     
         methods (Static)

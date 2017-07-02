@@ -15,7 +15,7 @@ weights = linspace(0.0001,0.005,51);
 weights_effort = linspace(0.1,1,51);
 Nw = 51;
 %ratio_loads = [0, 0.25, 0.5, 0.75, 1];
-ratio_loads = 0;
+ratio_loads = 1;
 
 Nr = length(ratio_loads);
 robot_params = cell(Nr);

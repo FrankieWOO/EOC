@@ -93,8 +93,16 @@ classdef ActMccpvd
             torque = obj.Ks*(obj.B*obj.C).*sin(phi).*...
                 (1+ (obj.r*m2 - obj.A0)./A );
         end
-        
-        
+        function tau = torque_load1(obj, q, theta1, theta2)
+            tau = obj.torque_spring(q, theta1, theta2)/obj.gear;
+        end
+        function tau = torque_load2(obj, q, theta1, theta2)
+            tau = obj.spring_force(q, theta1, theta2)*obj.r;
+        end
+        function force = spring_force(obj, q, theta1, theta2)
+            sprlength = obj.spring_displacement(q,theta1, theta2);
+            force = sprlength*obj.Ks;
+        end
         function sprlength = spring_displacement(obj, q, theta1, theta2)
             
             A = sqrt(obj.C^2 + obj.B^2 - 2*obj.B*obj.C*cos(theta1/obj.gear-q));
