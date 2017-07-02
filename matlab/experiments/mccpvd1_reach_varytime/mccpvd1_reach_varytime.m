@@ -97,8 +97,7 @@ for i =1:length(tasks)
     j2 = @(x,u,t)tasks{i}.j_tf_elec_rege(x,u,t);
     traj_elec = ILQRController.run_multiple(f, j1, dt, N, x0, u0, opt_param);
     traj_elec_rege = ILQRController.run_multiple(f, j2, dt, N, x0, u0, opt_param);
-    results_elec{i}.traj = traj_elec;
-    results_elec_rege{i}.traj = traj_elec_rege;
+    
     t = 0:dt:Ts(i);
     tsim = 0:0.001:Ts(i) ;
     psim.solver = 'rk4';
@@ -109,9 +108,12 @@ for i =1:length(tasks)
     traj_elec_rege.usim = scale_controlSeq(traj_elec_rege.u,t,tsim);
     
     [traj_elec_rege.xsim] = simulate_feedforward(x0,f,traj_elec_rege.usim,psim);
+    results_elec{i}.traj = traj_elec;
+    results_elec_rege{i}.traj = traj_elec_rege;
     
-    results_elec{i}.tjf = traj_features(robot_model, results_elec{i}.traj.xsim, results_elec{i}.traj.usim, 0.001);
-    results_elec_rege{i}.tjf = traj_features(robot_model, results_elec_rege{i}.traj.xsim, results_elec_rege{i}.traj.usim, 0.001);
+    paramtjf.target = target;
+    results_elec{i}.tjf = traj_features(robot_model, traj_elec.xsim, traj_elec.usim, 0.001,paramtjf);
+    results_elec_rege{i}.tjf = traj_features(robot_model, traj_elec_rege.xsim, traj_elec_rege.usim, 0.001,paramtjf);
     
 end
 
