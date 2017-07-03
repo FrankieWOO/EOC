@@ -53,9 +53,9 @@ x0(5) = 0;
 cost_param = [];
 %cost_param.w0 = 1;
 
-cost_param.w_e = 1e-4;
+cost_param.w_e = 1e-3;
 cost_param.w_t = 0;
-cost_param.w_tf= 1;
+cost_param.w_tf= 100;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 0;
 cost_param.T = T;
@@ -113,12 +113,12 @@ result2.usim = scale_controlSeq(result2.u,t,tsim);
 result2.xsim = simulate_feedforward(x0,f,result2.usim,psim);
 %result3.usim = scale_controlSeq(result3.u,t,tsim);
 %result3.xsim = simulate_feedforward(x0,f,result3.usim,psim);
-
-tjf1 = traj_features(robot_model,result1.x,result1.u,0.02);
-tjf2 = traj_features(robot_model,result2.x,result2.u,0.02);
+paramtjf.target = target;
+tjf1 = traj_features(robot_model,result1.x,result1.u,0.02,paramtjf);
+tjf2 = traj_features(robot_model,result2.x,result2.u,0.02,paramtjf);
 %tjf3 = traj_features(robot_model,result3.x,result3.u,0.02);
-tjf1sim = traj_features(robot_model, xsim1,usim1,0.001);
-tjf2sim = traj_features(robot_model, result2.xsim,result2.usim,0.001);
+tjf1sim = traj_features(robot_model, xsim1,usim1,0.001,paramtjf);
+tjf2sim = traj_features(robot_model, result2.xsim,result2.usim,0.001,paramtjf);
 %tjf3sim = traj_features(robot_model, result3.xsim,result3.usim,0.001);
 
 figure

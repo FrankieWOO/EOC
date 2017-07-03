@@ -289,6 +289,7 @@ classdef Mccpvd1dofModel
             accel = p^2*(u(1)-x(3)) - 2*p*x(5);
             
             tau_m = tau_l + model.actuator.J1*accel + model.actuator.D1*x(5) ;
+            %tau_m = model.actuator.J1*accel + model.actuator.D1*x(5) ;
             %tau_m = tau_l;
         end
         
@@ -299,6 +300,7 @@ classdef Mccpvd1dofModel
             accel = p^2*(u(2)-x(4)) - 2*p*x(6);
             
             tau_m = tau_l + model.actuator.D2*x(6) + model.actuator.J2*accel;
+            %tau_m = model.actuator.D2*x(6) + model.actuator.J2*accel;
         end
         %%%% ---- motor torques
         
@@ -408,9 +410,9 @@ classdef Mccpvd1dofModel
                 0, 0;
                 p^2, 0;
                 0, p^2];
-            %xdot = A*x + B*u;
+            xdot = A*x + B*u;
             
-            xdot = A*x + B*u - [0;0; tau_l1/model.actuator.J1; tau_l2/model.actuator.J2];
+            %xdot = A*x + B*u - [0;0; tau_l1/model.actuator.J1; tau_l2/model.actuator.J2];
             
             if nargout > 1
                 xdot_x  = A;  

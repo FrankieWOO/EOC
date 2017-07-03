@@ -5,7 +5,7 @@ rng(1)
 
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 40;
+param_act.gear_d = 100;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -22,7 +22,7 @@ robot_model.actuator = ActMccpvd(param_act);
 %%%% step 2: define task
 %---- user specification ----%
 target = 0.7;
-T = 1;
+T = 1.5;
 dt = 0.02;
 N = T/dt + 1;
 %alpha = 0.7;
@@ -57,7 +57,7 @@ cost_param = [];
 cost_param.w_e = 1;
 cost_param.w_t = 1;
 cost_param.w_tf= 1*dt;
-cost_param.w_r = cost_param.w_e;
+cost_param.w_r = cost_param.w_e*1;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 0;
 cost_param.T = T;
@@ -69,18 +69,18 @@ cost_param.fd = 1; % use finite difference or not
 cost_param.x0 = x0;
 f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
 task1 = mccpvd1_reach(robot_model, cost_param);
-%j1 = @(x,u,t)task1.j_tf_effort(x,u,t);
-%j2 = @(x,u,t)task1.j_tf_effort_rege(x,u,t);
 
-j1 = @(x,u,t)task1.j_tf_effort(x,u,t);
-j2 = @(x,u,t)task1.j_tf_effort_rege(x,u,t);
+cost_param2 = cost_param;
+cost_param2.w_e = 1e-2;
+cost_param2.w_r = cost_param2.w_e;
+task2 = mccpvd1_reach(robot_model, cost_param2);
 
-%j = @(x,u,t)task.j_noutmech(x,u,t);
-%costfn = CostMccvd1();
-%j = @(x,u,t)costfn.j_reach_netmech(robot_model,x,u,t,cost_param);
+%j1 = @(x,u,t)task1.j_effort(x,u,t);
+%j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
 
-%oc = ILQRController(robot_model, task);
-%oc.opt_param.online_plotting=0;
+j1 = @(x,u,t)task2.j_elec(x,u,t);
+j2 = @(x,u,t)task2.j_elec_rege(x,u,t);
+
 
 %%
 opt_param = [];
@@ -101,8 +101,8 @@ opt_param.T = T;
 u0 = [cost_param.target; 0; 0];
 %u0 = [0; 0.1; 0];
 
-result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
-result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
+result1 = ILQRController.ilqr_sim(f, j1, dt, N, x0, u0, opt_param);
+result2 = ILQRController.ilqr_sim(f, j2, dt, N, x0, u0, opt_param);
 
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
 %%

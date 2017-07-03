@@ -13,8 +13,8 @@ x0(1) = position0;
 x0(3) = position0;
 x0(5) = 0;
 
-weights_elec = linspace(0,1e-3,51);
-weights_effort = linspace(0,10,51);
+weights_elec = linspace(0,3*1e-3,51);
+weights_effort = linspace(0,3,51);
 Nw = 51;
 %ratio_loads = [0, 0.25, 0.5, 0.75, 1];
 ratio_loads = 1;
@@ -23,8 +23,7 @@ Nr = length(ratio_loads);
 robot_params = cell(Nr);
 robot_models = cell(Nr);
 
-f = @(x,u)robot_models{1}.dynamics_with_jacobian_fd(x,u);
-        
+
 for i=1:Nr
    
     robot_params{i}.ratio_load = ratio_loads(i); 
@@ -108,9 +107,14 @@ end
  tsim = 0:0.001:T ;
         psim.solver = 'rk4';
         psim.dt = 0.001;
+        
+ paramtjf.target = target;
 parfor i = 1:Nw
     for j = 1:Nr
 %result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
+         
+
+
          results{i,j}.result_elec = ILQRController.run_multiple(task_params_elec{i,j}.f, task_params_elec{i,j}.j_elec, dt, N, x0, u0, opt_param);
          results{i,j}.result_elec_rege = ILQRController.run_multiple(task_params_elec{i,j}.f, task_params_elec{i,j}.j_elec_rege, dt, N, x0, u0, opt_param);
          %results{i,j}.result_outmech_rege0 = ILQRController.ilqr(task_params2{i,j}.f, task_params2{i,j}.j_outmech, dt, N, x0, u0, opt_param);
@@ -122,7 +126,13 @@ parfor i = 1:Nw
          results{i,j}.result_effort_rege =ILQRController.run_multiple(task_params_effort{i,j}.f, task_params_effort{i,j}.j_effort_rege, dt, N, x0, u0, opt_param);
         
         
-        results{i,j}.result_elec.usim = scale_controlSeq(results{i,j}.result_elec.u,t,tsim);
+    end
+end
+%%
+f = @(x,u)robot_models{1,1}.dynamics_with_jacobian_fd(x,u);
+for i=1:Nw
+    for j=1:Nr
+    results{i,j}.result_elec.usim = scale_controlSeq(results{i,j}.result_elec.u,t,tsim);
     
     [results{i,j}.result_elec.xsim] = ...
         simulate_feedforward(x0,f,results{i,j}.result_elec.usim,psim);
@@ -144,13 +154,15 @@ parfor i = 1:Nw
         simulate_feedforward(x0,f,results{i,j}.result_effort_rege.usim,psim);
     
     
-    results{i,j}.tjf_elec = traj_features(robot_model, results{i,j}.result_elec.xsim, results{i,j}.result_elec.usim, 0.001);
-    results{i,j}.tjf_elec_rege = traj_features(robot_model, results{i,j}.result_elec_rege.xsim, results{i,j}.result_elec_rege.usim, 0.001);
+    results{i,j}.tjf_elec = traj_features(robot_models{1,1}, results{i,j}.result_elec.xsim, results{i,j}.result_elec.usim, 0.001,paramtjf);
+    results{i,j}.tjf_elec_rege = traj_features(robot_models{1,1}, results{i,j}.result_elec_rege.xsim, results{i,j}.result_elec_rege.usim, 0.001,paramtjf);
     
-    results{i,j}.tjf_elec = traj_features(robot_model, results{i,j}.result_effort.xsim, results{i,j}.result_effort.usim, 0.001);
-    results{i,j}.tjf_elec_rege = traj_features(robot_model, results{i,j}.result_effort_rege.xsim, results{i,j}.result_effort_rege.usim, 0.001);
+    results{i,j}.tjf_effort = traj_features(robot_models{1,1}, results{i,j}.result_effort.xsim, results{i,j}.result_effort.usim, 0.001,paramtjf);
+    results{i,j}.tjf_effort_rege = traj_features(robot_models{1,1}, results{i,j}.result_effort_rege.xsim, results{i,j}.result_effort_rege.usim, 0.001,paramtjf);
+
     end
 end
+
 
 %%
 % res.robot_models = robot_models;

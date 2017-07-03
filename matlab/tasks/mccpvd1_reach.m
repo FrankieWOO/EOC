@@ -28,14 +28,14 @@ classdef mccpvd1_reach
             if isfield(p,'w_tf'), self.w_tf = p.w_tf;end
             if isfield(p,'w_e'), self.w_e = p.w_e;end
             if isfield(p,'w_r'), self.w_r = p.w_r;end
-            if isfield(p,'target_x') 
+            if isfield(p,'target_x')
                 self.target_x = p.target_x;
             elseif isfield(p,'target')
                 self.target_x = zeros(robot_model.dimX,1);
                 self.target_x(1) = p.target;
                 self.target_x(3) = p.target;
             end
-            if isfield(p,'target_q') 
+            if isfield(p,'target_q')
                 self.target_q = p.target_q;
             end
             
@@ -61,6 +61,33 @@ classdef mccpvd1_reach
                 end
             else
                 fl = @(x,u,t) self.costr_effort(x,u);
+                l = fl(x,u,t);
+                
+                
+                if nargout>1
+                    
+                    
+                    % finite difference
+                    flJ=@(x,u,t)J_cost_fd ( fl, x, u, t );
+                    [l_x ,l_u      ] = flJ ( x, u, t );
+                    flH =@(x,u,t)H_cost_fd  ( flJ, x, u, t );
+                    [l_xx,l_uu,l_ux] = flH  ( x, u, t );
+                end
+                
+            end
+        end
+                function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_effort_rege(self,x,u,t)
+            if (isnan(u))
+                % final cost
+                fl = @(x) self.costf(x);
+                l = fl(x);
+                if nargout>1
+                    flJ = @(x) get_jacobian_fd(fl, x);
+                    l_x = flJ(x);
+                    l_xx = get_hessian_fd(flJ,x);
+                end
+            else
+                fl = @(x,u,t) self.costr_effort_rege(x,u);
                 l = fl(x,u,t);
                 
                 
@@ -134,14 +161,14 @@ classdef mccpvd1_reach
             end
         end
         function c = costr_effort(self, x,u)
-           % error = x(1:2) - self.target_q;
+            % error = x(1:2) - self.target_q;
             %c1 = norm(error, 2);
             c1 = (x(1) - self.target).^2;
             ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
             c = c1*self.w_t + sum(u.^2,1) * self.epsilon + ce*self.w_e;
         end
         function c = costr_effort_rege(self, x,u)
-             %error = x(1:2) - self.target_q;
+            %error = x(1:2) - self.target_q;
             %c1 = norm(error, 2);
             c1 = (x(1) - self.target).^2;
             ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
@@ -322,9 +349,9 @@ classdef mccpvd1_reach
         
         function c = costr_elec(self, x, u)
             % error = x(1:2) - self.target_q;
-           % c1 = norm(error, 2);
-           c1 = (x(1) - self.target).^2; 
-           %             [xsim, usim ] = self.simtraj(x,u);
+            % c1 = norm(error, 2);
+            c1 = (x(1) - self.target).^2;
+            %             [xsim, usim ] = self.simtraj(x,u);
             %             usim = [usim, u];
             %             p1_elec = 0;
             %             p2_elec = 0;
@@ -393,20 +420,93 @@ classdef mccpvd1_reach
             c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e;
         end
         function c = costr_elec_posi_rege(self, x, u)
-             %error = x(1:2) - self.target_q;
+            %error = x(1:2) - self.target_q;
             %c1 = norm(error, 2);
             c1 = (x(1) - self.target).^2;
             [~, p1_elec, p2_elec] = self.robot_model.power_elec(x,u);
             p1_elec = max(0,p1_elec);
             p2_elec = max(0,p2_elec);
             p_rege = self.robot_model.power_rege(x,u);
-            power = p1_elec + p2_elec - p_rege;
+            power = p1_elec + p2_elec ;
             
-            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e- p_rege*self.w_r;
             
         end
         
-        
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_link(self,x,u,t)
+            if (isnan(u))
+                % final cost
+                fl = @(x) self.costf(x);
+                l = fl(x);
+                if nargout>1
+                    flJ = @(x) get_jacobian_fd(fl, x);
+                    l_x = flJ(x);
+                    l_xx = get_hessian_fd(flJ,x);
+                end
+            else
+                fl = @(x,u,t) self.costr_link(x,u);
+                l = fl(x,u,t);
+                
+                
+                if nargout>1
+                    
+                    
+                    % finite difference
+                    flJ=@(x,u,t)J_cost_fd ( fl, x, u, t );
+                    [l_x ,l_u      ] = flJ ( x, u, t );
+                    flH =@(x,u,t)H_cost_fd  ( flJ, x, u, t );
+                    [l_xx,l_uu,l_ux] = flH  ( x, u, t );
+                end
+                
+            end
+        end
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_link_rege(self,x,u,t)
+            if (isnan(u))
+                % final cost
+                fl = @(x) self.costf(x);
+                l = fl(x);
+                if nargout>1
+                    flJ = @(x) get_jacobian_fd(fl, x);
+                    l_x = flJ(x);
+                    l_xx = get_hessian_fd(flJ,x);
+                end
+            else
+                fl = @(x,u,t) self.costr_link(x,u);
+                l = fl(x,u,t);
+                
+                
+                if nargout>1
+                    
+                    
+                    % finite difference
+                    flJ=@(x,u,t)J_cost_fd ( fl, x, u, t );
+                    [l_x ,l_u      ] = flJ ( x, u, t );
+                    flH =@(x,u,t)H_cost_fd  ( flJ, x, u, t );
+                    [l_xx,l_uu,l_ux] = flH  ( x, u, t );
+                end
+                
+            end
+        end
+        function c = costr_link(self, x, u)
+            
+            c1 = (x(1) - self.target).^2;
+            
+            % running cost
+            [power] = self.robot_model.power_link(x ,u);
+            %power = p1+p2;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e;
+        end
+               function c = costr_link_rege(self, x, u)
+            
+            c1 = (x(1) - self.target).^2;
+            
+            % running cost
+            [power] = self.robot_model.power_link(x ,u);
+            p_rege = self.robot_model.power_rege(x,u);
+            
+            %power = p1+p2;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e - p_rege*w_r;
+        end
         function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_load(self,x,u,t)
             % net output mechanical power
             if (isnan(u))
@@ -421,7 +521,6 @@ classdef mccpvd1_reach
             else
                 fl = @(x,u,t) self.costr_load(x,u);
                 l = fl(x,u,t);
-                
                 
                 if nargout>1
                     
@@ -527,7 +626,7 @@ classdef mccpvd1_reach
             [~,p1,p2] = self.robot_model.power_load(x ,u);
             
             power = max(0,p1) + max(0,p2) ;
-            c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w;
         end
         function c = costr_load_posi_rege(self, x, u)
             
@@ -537,9 +636,9 @@ classdef mccpvd1_reach
             [~,p1,p2] = self.robot_model.output_mechpower(x ,u);
             %damping = self.robot_model.actuator.damping(u(3));
             
-            p_charge = self.robot_model.power_charge(x,u);
+            p_charge = self.robot_model.power_rege(x,u);
             power = max(0,p1) + max(0,p2) - p_charge;
-            c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w;
         end
         function c = costr_load(self, x, u)
             
@@ -548,7 +647,7 @@ classdef mccpvd1_reach
             % running cost
             [~,p1,p2] = self.robot_model.power_load(x ,u);
             power = p1+p2;
-            c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w;
         end
         function c = costr_load_rege(self, x, u)
             
@@ -560,7 +659,7 @@ classdef mccpvd1_reach
             
             p_rege = self.robot_model.power_rege(x,u);
             power = p1 + p2 - p_rege;
-            c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e;
         end
         
         
@@ -620,7 +719,7 @@ classdef mccpvd1_reach
                 
             end
         end
-                function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_mech_rege(self,x,u,t)
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_mech_rege(self,x,u,t)
             % Energy Cost := sum[ positive elec power]
             if (isnan(u))
                 % final cost
@@ -692,7 +791,7 @@ classdef mccpvd1_reach
             
             % running cost
             [~,p1,p2] = self.robot_model.power_mech(x ,u);
-            p_rege = self.robot_model.power_charge(x,u);
+            p_rege = self.robot_model.power_rege(x,u);
             power = max(0,p1) + max(0,p2) - p_rege ;
             c =  c1*self.w0 + sum(u.^2,1) * self.epsilon + power*self.w;
         end
