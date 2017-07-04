@@ -21,18 +21,20 @@ robot_model.actuator = ActMccpvd(param_act);
 
 %%%% step 2: define task
 %---- user specification ----%
-target = 0.7;
-T = 1.5;
-dt = 0.02;
-N = T/dt + 1;
+target = 0.7 ;
+T = 1.5 ;
+dt = 0.02 ;
+N = T/dt + 1 ;
 %alpha = 0.7;
-position0 = 0;
-x0 = zeros(6,1); 
-x0(1) = position0;
-x0(3) = position0;
-x0(5) = 0;
-target_q = [target;0];
-target_x = x0; target_x(1) = target; target_x(3) = target;
+position0 = 0 ;
+x0 = zeros(6,1) ; 
+x0(1) = position0 ;
+x0(3) = position0 ;
+x0(5) = 0 ;
+target_q = [target ; 0] ;
+target_x = x0 ; 
+target_x(1) = target ; 
+target_x(3) = target ;
 % task_param = [];
 % task_param.target = target;
 % task_param.T = T;
@@ -51,24 +53,24 @@ target_x = x0; target_x(1) = target; target_x(3) = target;
 
 %%%% step 3: init OC handler
 
-cost_param = [];
+cost_param = [] ;
 %cost_param.w0 = 1;
 
-cost_param.w_e = 1;
-cost_param.w_t = 1;
-cost_param.w_tf= 1*dt;
-cost_param.w_r = cost_param.w_e*1;
+cost_param.w_e = 1 ;
+cost_param.w_t = 1 ;
+cost_param.w_tf= 1*dt ;
+cost_param.w_r = cost_param.w_e*1 ;
 %cost_param.alpha = alpha;
-cost_param.epsilon = 0;
-cost_param.T = T;
-cost_param.dt = dt;
-cost_param.target = target;
-cost_param.target_x = target_x;
-cost_param.target_q = target_q;
-cost_param.fd = 1; % use finite difference or not
-cost_param.x0 = x0;
-f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
-task1 = mccpvd1_reach(robot_model, cost_param);
+cost_param.epsilon = 0 ;
+cost_param.T = T ;
+cost_param.dt = dt ;
+cost_param.target = target ;
+cost_param.target_x = target_x ;
+cost_param.target_q = target_q ;
+cost_param.fd = 1 ; % use finite difference or not
+cost_param.x0 = x0 ;
+f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u) ;
+task1 = mccpvd1_reach(robot_model, cost_param) ;
 
 cost_param2 = cost_param;
 cost_param2.w_e = 1e-2;

@@ -9,15 +9,17 @@
 %      .un - nominal command
 %      .xn - nominal state
 %      .Ln - gains
-%
+%      .umax
+%      .umin
 % out:
 %     u  - action
 %
 function u = pi_ilqr ( x, t, p )
 
-un = p.un;
-xn = p.xn;
-Ln = p.Ln;
+    u = p.un(:,t) + p.Ln(:,:,t)*(x - p.xn(:,t));
 
-u = un(:,t) + Ln(:,:,t)*(x-xn(:,t));
+    if isfield(p,'umax') && isfield(p, 'umin')
+        u = min(max(u,p.umin),p.umax);
+    end
+
 end

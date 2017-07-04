@@ -50,7 +50,7 @@ classdef ILQRController < OptController
             
             % setup task specific cost function
             
-            %task.cost_param.x_target = task_param.target ;
+            
             %task.cost_param.epsilon = 0 ; %10^-8 ;
             %task.cost_param.dt = oc.cdt;
             %task.cost_param.fd = 0;

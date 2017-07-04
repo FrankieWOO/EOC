@@ -76,7 +76,7 @@ classdef mccpvd1_reach
                 
             end
         end
-                function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_effort_rege(self,x,u,t)
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_effort_rege(self,x,u,t)
             if (isnan(u))
                 % final cost
                 fl = @(x) self.costf(x);
@@ -496,7 +496,7 @@ classdef mccpvd1_reach
             %power = p1+p2;
             c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e;
         end
-               function c = costr_link_rege(self, x, u)
+        function c = costr_link_rege(self, x, u)
             
             c1 = (x(1) - self.target).^2;
             

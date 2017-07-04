@@ -28,7 +28,7 @@ t  = 0:dt:p.T;
 
 % integrate running cost & add final cost
 %cost = dt*sum(l(x(:,1:end-1),u,t)) + l(x(:,end),u,nan);
-cost_final = l(x(:,end),nan,t(:,end));
+cost_final = l(x(:,end), NaN, t(end));
 cost_run = zeros(1,Nu);
 for i=1:Nu
    cost_run(i) = l(x(:,i),u(:,i),t(i))*dt ; 
