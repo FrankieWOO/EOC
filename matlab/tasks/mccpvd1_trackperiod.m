@@ -139,7 +139,7 @@ classdef mccpvd1_trackperiod
             
         end
         function cost = l_effort(obj, x, u, t)
-            n = floor(t/obj.dt) + 1;
+            n = round(t/obj.dt) + 1;
             track_error = obj.L2_error(obj.x_ref(:,n), x(1:2));
             
             energy_cost = norm(u(1:2) - x(3:4),2) ;

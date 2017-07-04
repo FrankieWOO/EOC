@@ -1,4 +1,4 @@
-
+format long
 Ts = 0.4:0.02:2;
 amplitude = 0.7;
 results = cell(length(Ts),1);
@@ -18,12 +18,24 @@ robot_param.inertia_l = 0.0016;
 robot_model = Mccpvd1dofModel(robot_param);
 robot_model.actuator = ActMccpvd(param_act);
 
+opt_param = [];
+opt_param.umax = robot_model.umax;
+opt_param.umin = robot_model.umin;
+opt_param.lambda_init = 0.01;
+opt_param.lambda_max  = 2000;
+opt_param.iter_max = 250;
+opt_param.online_plotting = 0;
+opt_param.online_printing = 1;
+opt_param.dcost_converge = 10^-6;
+opt_param.solver = 'rk4';
+u0 = [0; 0; 0];
+
 for i = 1:length(Ts)
 
 T = Ts(i);
 freq = 1/T;
 dt = 0.02;
-Nu = floor(T/dt);
+Nu = round(T/dt);
 N = Nu + 1;
 
 t = 0:dt:T;
@@ -48,22 +60,12 @@ f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u) ;
 j = @(x,u,t)task.j_effort(x,u,t);
 
 %%
-opt_param = [];
-opt_param.umax = robot_model.umax;
-opt_param.umin = robot_model.umin;
-opt_param.lambda_init = 0.01;
-opt_param.lambda_max  = 2000;
-opt_param.iter_max = 100;
-opt_param.online_plotting = 0;
-opt_param.online_printing = 1;
-opt_param.dcost_converge = 10^-6;
-opt_param.solver = 'rk4';
 
 opt_param.T = T;
 
 % u0 can be full command sequence or just initial point
 %u0 = [task_param.target; 0; 0];
-u0 = [0; 0; 0];
+
 
 result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 results{i,1}.traj = result;
