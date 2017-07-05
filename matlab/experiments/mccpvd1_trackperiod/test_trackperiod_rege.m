@@ -36,12 +36,13 @@ task_param.Nu = Nu;
 task_param.w_e = 1e-5;
 task_param.w_t = 1 ;
 %task_param.w_tf= 1*dt ;
-task_param.w_r = task_param.w_e*0;
+task_param.w_r = task_param.w_e*1;
 task = mccpvd1_trackperiod(robot_model, task_param);
 
 f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u) ;
 
-j = @(x,u,t)task.j_effort_rege(x,u,t);
+j = @(x,u,t)task.j_effort(x,u,t);
+j2 = @(x,u,t)task.j_effort_rege(x,u,t);
 
 %j1 = @(x,u,t)task1.j_effort(x,u,t);
 %j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
@@ -68,7 +69,7 @@ opt_param.T = T;
 u0 = [0; 0; 0];
 
 result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
-%result2 = ILQRController.ilqr_sim(f, j2, dt, N, x0, u0, opt_param);
+result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
 %%
 % figure
 % subplot(2,2,1)
@@ -94,7 +95,6 @@ result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 %%
 % run controller on plant
 N_run = 3;
-
 
 ppi = []; ppi.xn = [repmat(result.x(:,1:end-1),1,N_run), result.x(:,end)]; 
 ppi.un = repmat(result.u, 1, N_run); ppi.Ln = repmat(result.L, [1 1 N_run]);

@@ -14,7 +14,6 @@ param_act.gear_d = 20;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
 robot_param.inertia_l = 0.0016;
-robot_param.gravity = true;
 %robot_param.Df = 0.01;
 robot_model = Mccpvd1dofModel(robot_param);
 robot_model.actuator = ActMccpvd(param_act);

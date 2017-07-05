@@ -25,8 +25,8 @@ classdef Mccpvd1dofModel
         
         link_length = 0.15;% link length
         link_mass = 0.09;
-        
-        
+        com = 0.075;
+        mass
         
         
         servo1_mass = 0.09;
@@ -118,13 +118,13 @@ classdef Mccpvd1dofModel
                 param = varargin{1};
                 if isfield(param,'inertia_l'), model.inertia_l = param.inertia_l; end
                 if isfield(param,'Df'), model.Df = param.Df; end
-                
+                if isfield(param,'gravity'), model.gravity_constant = 9.8; end
                 %if isfield(param,'gear'), obj.gear_d = param.gear_d ; end
             end
             model.actuator = ActMccpvd();
             
             model.inertia = model.inertia_l + model.actuator.Id;
-            
+            model.mass = model.link_mass + model.servo1_mass;
             %model = model.init_symfuns();
 
         end
@@ -277,7 +277,7 @@ classdef Mccpvd1dofModel
         % Torque including friction, gravity
         function torque_total = torque_total(model,x,u)
             torque_total = model.actuator.torque(x(1),x(2),x(3),x(4),u(3))...
-                - model.Df*x(2);
+                - model.Df*x(2) - sin(model.mass*model.gravity_constant)*model.com;
         end
         %%%%---- torques ----%%%%
         

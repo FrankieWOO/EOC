@@ -37,7 +37,7 @@ classdef mccpvd1_trackperiod
                     l_xx = get_hessian_fd(flJ,x);
                 end
             else
-                fl = @(x,u,t) obj.l_elec(x,u);
+                fl = @(x,u,t) obj.l_elec(x,u,t);
                 l = fl(x,u,t);
                 
                 
@@ -65,7 +65,7 @@ classdef mccpvd1_trackperiod
                     l_xx = get_hessian_fd(flJ,x);
                 end
             else
-                fl = @(x,u,t) obj.l_elec_rege(x,u);
+                fl = @(x,u,t) obj.l_elec_rege(x,u,t);
                 l = fl(x,u,t);
                 
                 
@@ -82,6 +82,64 @@ classdef mccpvd1_trackperiod
             end
             
         end
+        
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_elec_posi(obj, x, u, t)
+            if (isnan(u))
+                % final cost
+                fl = @(x)obj.l_f(x);
+                l = fl(x);
+                if nargout>1
+                    flJ = @(x) get_jacobian_fd(fl, x);
+                    l_x = flJ(x);
+                    l_xx = get_hessian_fd(flJ,x);
+                end
+            else
+                fl = @(x,u,t) obj.l_elec_posi(x,u,t);
+                l = fl(x,u,t);
+                
+                
+                if nargout>1
+                    
+                    
+                    % finite difference
+                    flJ=@(x,u,t)J_cost_fd ( fl, x, u, t );
+                    [l_x ,l_u      ] = flJ ( x, u, t );
+                    flH =@(x,u,t)H_cost_fd  ( flJ, x, u, t );
+                    [l_xx,l_uu,l_ux] = flH  ( x, u, t );
+                end
+                
+            end
+            
+        end
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_elec_posi_rege(obj, x, u, t)
+            if (isnan(u))
+                % final cost
+                fl = @(x) obj.l_f(x);
+                l = fl(x);
+                if nargout>1
+                    flJ = @(x) get_jacobian_fd(fl, x);
+                    l_x = flJ(x);
+                    l_xx = get_hessian_fd(flJ,x);
+                end
+            else
+                fl = @(x,u,t) obj.l_elec_posi_rege(x,u,t);
+                l = fl(x,u,t);
+                
+                
+                if nargout>1
+                    
+                    
+                    % finite difference
+                    flJ=@(x,u,t)J_cost_fd ( fl, x, u, t );
+                    [l_x ,l_u      ] = flJ ( x, u, t );
+                    flH =@(x,u,t)H_cost_fd  ( flJ, x, u, t );
+                    [l_xx,l_uu,l_ux] = flH  ( x, u, t );
+                end
+                
+            end
+            
+        end
+        
         function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_effort(obj, x, u, t)
             if (isnan(u))
                 % final cost
@@ -121,7 +179,7 @@ classdef mccpvd1_trackperiod
                     l_xx = get_hessian_fd(flJ,x);
                 end
             else
-                fl = @(x,u,t) obj.l_effort_rege(x,u);
+                fl = @(x,u,t) obj.l_effort_rege(x,u,t);
                 l = fl(x,u,t);
                 
                 
@@ -147,7 +205,7 @@ classdef mccpvd1_trackperiod
             cost = track_error*obj.w_t + energy_cost*obj.w_e;
         end
         function cost = l_effort_rege(obj, x, u, t)
-            n = t/obj.dt + 1;
+            n = round(t/obj.dt) + 1;
             track_error = obj.L2_error(obj.x_ref(:,n), x(1:2));
             
             energy_cost = norm(u(1:2) - x(3:4),2) ;
@@ -155,7 +213,7 @@ classdef mccpvd1_trackperiod
             cost = track_error*obj.w_t + energy_cost*obj.w_e - p_rege*obj.w_r;
         end
         function cost = l_elec(obj, x, u, t)
-            n = t/obj.dt + 1;
+            n = round(t/obj.dt) + 1;
             track_error = obj.L2_error(obj.x_ref(:,n), x(1:2));
             
             energy_cost = obj.robot_model.power_elec(x,u) ;
@@ -163,7 +221,7 @@ classdef mccpvd1_trackperiod
             cost = track_error*obj.w_t + energy_cost*obj.w_e;
         end
         function cost = l_elec_rege(obj, x, u, t)
-            n = t/obj.dt + 1;
+            n = round(t/obj.dt) + 1;
             track_error = obj.L2_error(obj.x_ref(:,n), x(1:2));
             
             energy_cost = obj.robot_model.power_elec(x,u)  ;
@@ -171,7 +229,7 @@ classdef mccpvd1_trackperiod
             cost = track_error*obj.w_t + energy_cost*obj.w_e - p_rege*obj.w_r;
         end
         function cost = l_elec_posi(obj, x, u, t)
-            n = t/obj.dt + 1;
+            n = round(t/obj.dt) + 1;
             track_error = obj.L2_error(obj.x_ref(:,n), x(1:2));
             
             energy_cost = obj.robot_model.power_elec_posi(x,u) ;
@@ -179,7 +237,7 @@ classdef mccpvd1_trackperiod
             cost = track_error*obj.w_t + energy_cost*obj.w_e;
         end
         function cost = l_elec_posi_rege(obj, x, u, t)
-            n = t/obj.dt + 1;
+            n = round(t/obj.dt) + 1;
             track_error = obj.L2_error(obj.x_ref(:,n), x(1:2));
             
             energy_cost = obj.robot_model.power_elec_posi(x,u)  ;
@@ -266,17 +324,17 @@ classdef mccpvd1_trackperiod
             
             res.E_rege = sum(p_rege)*dt;
             res.E_damp = sum(p_damp)*dt;
-            
-            res.E_netelec = res.E_elec - sum(p_rege)*dt;
-            res.E_netelec_posi = res.E_elec_posi - sum(p_rege)*dt;
-            
-            res.E_netmech = res.E_mech - sum(p_rege)*dt;
-            
             res.E_link = sum(p_link)*dt ;
             res.E_link_posi = sum(max(0,p_link))*dt ;
             res.E_fric = sum(p_fric)*dt;
             res.E_effort = sum(p_effort)*dt;
             res.rege_ratio = res.E_rege/res.E_link;
+            res.E_netelec = res.E_elec - sum(p_rege)*dt;
+            res.E_netelec_posi = res.E_elec_posi - sum(p_rege)*dt;
+            res.E_neteffort = res.E_effort - res.E_rege;
+            res.E_netmech = res.E_mech - sum(p_rege)*dt;
+            
+            
             
             res.track_error = sum(sum( (param.x_ref - x(1:2,:) ).^2,1 ),2)*dt;
             
