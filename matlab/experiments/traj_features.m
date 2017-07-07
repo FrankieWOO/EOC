@@ -49,12 +49,12 @@ function [ res ] = traj_features( model, x, u, dt,param)
     
     p1_diss = p1_elec - p1_mech;
     p2_diss = p2_elec - p2_mech;
-    res.E_diss = sum(p1_diss)*dt + sum(p2_diss)*dt;
+    res.E_elecdiss = sum(p1_diss)*dt + sum(p2_diss)*dt;
     res.E_elec = sum(p1_elec)*dt+sum(p2_elec)*dt;
     res.E_elec2 = sum(p1_elec2)*dt+sum(p2_elec2)*dt;
     res.E_elec_posi = sum( max(0, p1_elec) )*dt + dt*sum( max(0, p2_elec) );
     
-    res.E_mech = sum(p1_mech)*dt+sum(p2_mech)*dt;
+    res.E_mech = sum(p1_mech)*dt + sum(p2_mech)*dt;
     res.E_mech_posi = sum( max(0, p1_mech) )*dt + sum( max(0, p2_mech) )*dt;
     res.E_load = sum(p_load)*dt;
     res.E_load_posi = sum( max(0,p_load))*dt;
@@ -62,16 +62,23 @@ function [ res ] = traj_features( model, x, u, dt,param)
     res.E_rege = sum(p_rege)*dt;
     res.E_damp = sum(p_damp)*dt;
     
-    res.E_netelec = res.E_elec - sum(p_rege)*dt;
-    res.E_netelec_posi = res.E_elec_posi - sum(p_rege)*dt;
-    
-    res.E_netmech = res.E_mech - sum(p_rege)*dt;
     
     res.E_link = sum(p_link)*dt;
     res.E_link_posi = sum(max(0,p_link))*dt;
     res.E_fric = sum(p_fric)*dt;
     res.E_effort = sum(p_effort)*dt;
     res.rege_ratio = res.E_rege/res.E_link;
+    
+    res.E_netelec = res.E_elec - sum(p_rege)*dt;
+    res.E_netelec_posi = res.E_elec_posi - sum(p_rege)*dt;
+    
+    res.E_netmech = res.E_mech - res.E_rege;
+    res.E_netmech_posi = res.E_mech_posi - res.E_rege;
+    res.E_netload = res.E_load - res.E_rege;
+    res.E_netload_posi = res.E_load_posi - res.E_rege;
+    res.E_netlink = res.E_link - res.E_rege;
+    res.E_netlink_posi = res.E_link_posi -res.E_rege;
+    
     res.cost_accuracy = sum((param.target-x(1,:)).^2 )*dt;
     res.peak_speed = max(x(2,:));
     
