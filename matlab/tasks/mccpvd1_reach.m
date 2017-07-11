@@ -20,6 +20,7 @@ classdef mccpvd1_reach
         T % final time
         
         f
+        j
     end
     
     methods
@@ -846,12 +847,12 @@ classdef mccpvd1_reach
             % penalise both position and speed errors at T
             errorp = abs( x(1) - self.target);
             errorv = abs(x(2));
-            errora = abs( x(3) - x(1) );
-            %if errorp <= 0.01, errorp = 0;end
-            %if errorv <= 0.01, errorv = 0;end
+            %errora = abs( x(3) - x(1) );
+            if errorp <= 0.001, errorp = 0;end
+            if errorv <= 0.001, errorv = 0;end
             %if errora <= 0.01, errora = 0;end
-            error = errorp + errorv + errora;
-            c = (errorp^2 + errorv^2 + errora^2 + error)*self.w_tf;
+            %error = errorp + errorv + errora;
+            c = (errorp^2 + errorv^2 )*self.w_tf;
         end
         
         function [ res ] = traj_features(self, x, u, t, dt)
