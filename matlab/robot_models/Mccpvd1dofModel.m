@@ -118,11 +118,14 @@ classdef Mccpvd1dofModel
                 param = varargin{1};
                 if isfield(param,'inertia_l'), model.inertia_l = param.inertia_l; end
                 if isfield(param,'Df'), model.Df = param.Df; end
-                if isfield(param,'gravity'), model.gravity_constant = 9.8; end
+                if isfield(param,'has_gravity'), model.gravity_constant = 9.8; end
                 %if isfield(param,'gear'), obj.gear_d = param.gear_d ; end
             end
-            model.actuator = ActMccpvd();
-            
+            if nargin >= 2
+                model.actuator = ActMccpvd(varargin{2});
+            else
+                model.actuator = ActMccpvd();
+            end
             model.inertia = model.inertia_l + model.actuator.Id;
             model.mass = model.link_mass + model.servo1_mass;
             %model = model.init_symfuns();

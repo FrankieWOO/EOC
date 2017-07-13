@@ -631,19 +631,19 @@ classdef mccpvd1_reach
             [~,p1,p2] = self.robot_model.power_load(x ,u);
             
             power = max(0,p1) + max(0,p2) ;
-            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e;
         end
         function c = costr_load_posi_rege(self, x, u)
             
             c1 = (x(1) - self.target).^2;
             
             % running cost
-            [~,p1,p2] = self.robot_model.output_mechpower(x ,u);
+            [~,p1,p2] = self.robot_model.power_load(x ,u);
             %damping = self.robot_model.actuator.damping(u(3));
             
-            p_charge = self.robot_model.power_rege(x,u);
-            power = max(0,p1) + max(0,p2) - p_charge;
-            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w;
+            p_rege = self.robot_model.power_rege(x,u);
+            power = max(0,p1) + max(0,p2) - p_rege;
+            c =  c1*self.w_t + sum(u.^2,1) * self.epsilon + power*self.w_e;
         end
         function c = costr_load(self, x, u)
             

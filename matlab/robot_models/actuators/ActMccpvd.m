@@ -22,11 +22,12 @@ classdef ActMccpvd
         R2 = 0.8222;
         
         %%%% - damping motor - %%%%
+        motor_inertia = 4.6*10^(-6);
         Id = 0.00184
         gear_d = 20;
         Kd = 0.0212;
         Rd = 21.2;
-        ratio_load = 0.5;
+        ratio_load = 1;
         Rl
         max_damping_db
         max_damping
@@ -47,9 +48,12 @@ classdef ActMccpvd
                 if isfield(param,'R2'), obj.R2 = param.R2; end
                 if isfield(param,'Ks'), obj.Ks = param.Ks; end
             end
+            
             obj.Rl = obj.Rd*obj.ratio_load;
             obj.max_damping_db = obj.Kd^2 * obj.gear_d^2/obj.Rd ;
             obj.max_damping = obj.Kd^2 * obj.gear_d^2/(obj.Rd+obj.Rl);
+            
+            obj.Id = obj.motor_inertia*obj.gear_d^2;
         end
         
         %variable damping
@@ -64,11 +68,11 @@ classdef ActMccpvd
        
         
         function p = p_damp_charge(obj, qdot, u)
-            p = obj.p_damp_inputelec(qdot,u)* obj.ratio_load/(1+obj.ratio_load);
+            p = obj.p_damp_inputmech(qdot,u)* obj.ratio_load/(1+obj.ratio_load);
         end
-        function p = p_damp_inputelec(obj, qdot, u)
-            p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)^2/(obj.Rd+obj.Rl);
-        end
+        %function p = p_damp_inputelec(obj, qdot, u)
+        %    p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)^2/(obj.Rd+obj.Rl);
+        %end
         function p = p_damp_inputmech(obj, qdot, u)
             p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)/(obj.Rd+obj.Rl);
         end
@@ -122,7 +126,7 @@ classdef ActMccpvd
     methods (Static)
          function tr = transm(u)
             % u :- u3
-            tr = 1*u;
+            tr = u;
         end
     end
     
