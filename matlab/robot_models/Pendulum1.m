@@ -24,7 +24,7 @@ classdef Pendulum1
             if nargin > 0
                 p = varargin{1};
                 if isfield(p, 'has_gravity'), obj.has_gravity = p.has_gravity;end
-                if obj.has_gravity == true, obj.g = 9.8;end
+                if obj.has_gravity == true, obj.g = 9.8; end
                 if isfield(p, 'umin'), obj.umin = p.umin;end
                 if isfield(p, 'umax'), obj.umax = p.umax;end
                 if isfield(p, 'dimU'), obj.dimU = p.dimU;end
