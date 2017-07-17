@@ -51,7 +51,7 @@ x0(5) = 0;
 cost_param = [];
 %cost_param.w0 = 1;
 
-cost_param.w_e = 1e-3;
+cost_param.w_e = 1e-2;
 cost_param.w_t = 1;
 cost_param.w_tf= 1*dt;
 %cost_param.alpha = alpha;
@@ -99,8 +99,8 @@ opt_param.T = T;
 u0 = [cost_param.target; 0; 0];
 %u0 = [0; 0.1; 0];
 
-result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
-result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
+result1 = ILQRController.run_multiple(f, j1, dt, N, x0, u0, opt_param);
+result2 = ILQRController.run_multiple(f, j2, dt, N, x0, u0, opt_param);
 %result3 = ILQRController.ilqr(f, j3, dt, N, x0, result1.u, opt_param);
 
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);

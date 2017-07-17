@@ -68,11 +68,12 @@ classdef ActMccpvd
        
         
         function p = p_damp_charge(obj, qdot, u)
-            p = obj.p_damp_inputmech(qdot,u)* obj.ratio_load/(1+obj.ratio_load);
+            p = obj.p_damp_inputelec(qdot,u)* obj.ratio_load/(1+obj.ratio_load);
         end
-        %function p = p_damp_inputelec(obj, qdot, u)
-        %    p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)^2/(obj.Rd+obj.Rl);
-        %end
+        
+        function p = p_damp_inputelec(obj, qdot, u)
+            p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)^2/(obj.Rd+obj.Rl);
+        end
         function p = p_damp_inputmech(obj, qdot, u)
             p = obj.gear_d^2*obj.Kd^2*qdot^2*obj.transm(u)/(obj.Rd+obj.Rl);
         end
