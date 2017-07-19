@@ -3,14 +3,15 @@ classdef Mccpvd2DOF < arm2
     %   Detailed explanation goes here
     
     properties
-        rigidBodyTree;
-        link_len = [0.15 0.12];
-        mass = [1 1];
-        com = [0.1 0.08];
+        %rigidBodyTree;
+        
     end
     
     methods
         function self = Mccpvd2DOF()
+            param.link_len = [0.15 0.12];
+            param.mass = [1 1];
+            param.com = [0.1 0.08];
             if( isfield(param,'link_len') ), param_arm.link_len = param.link_len;
             else, param_arm.link_len = [0.15 0.12];
             end

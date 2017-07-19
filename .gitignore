@@ -48,3 +48,6 @@ Temporary Items
 
 # Matlab
 *.asv
+*.autosave
+*.tmw
+matlab/simulink-models/slprj/modeladvisor/com_2emathworks_2eSimulink_2eModelReferenceAdvisor_2eMainGroup_/regenerative__damper__with__battery/ModelAdvisorData
