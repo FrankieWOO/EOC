@@ -54,7 +54,14 @@ classdef IdealVIA
         end
         
         function power = power_rege(obj, qdot, u3)
-            
+            alpha = obj.ratio_load/(1+obj.ratio_load);
+            if u3 <= obj.u_max_regedamp
+                D = u3/obj.u_max_regedamp;
+                power = obj.max_rege_damping*alpha*(qdot^2)*D;
+            elseif u3 <= 1
+                D = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );
+                
+            end
         end
     end
     
