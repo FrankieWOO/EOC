@@ -12,7 +12,7 @@ classdef Pendulum1
         has_gravity = false
         
         umin = [-pi/2; 0; 0];
-        umax = [ pi/2; 100; 100];
+        umax = [ pi/2; 1; 1];
         
         dimX = 2
         dimU = 3
@@ -55,7 +55,7 @@ classdef Pendulum1
             tau = obj.actuator.torque(x(1),x(2),u(1),u(2),u(3));
         end
         
-        function d = damping(obj, x, u)
+        function d = damping(obj, u)
             d = obj.actuator.damping(u(3));
         end
         

@@ -27,8 +27,8 @@ classdef IdealVIA
                 p = varargin{1};
                 if isfield(p, 'umin'), obj.umin = p.umin; end
                 if isfield(p, 'umax'), obj.umax = p.umax; end
-                if isfield(p, 'ratio_load'), obj.ratio_load = p.ratio_load;end
-                if isfield(p, 'max_damping', obj.max_damping = p.max_damping;end
+                if isfield(p, 'ratio_load'),obj.ratio_load = p.ratio_load;end
+                if isfield(p, 'max_damping'),obj.max_damping = p.max_damping;end
                 if isfield(p, 'max_stiffness'), obj.max_stiffness=p.max_stiffness;end
             end
             
@@ -46,7 +46,19 @@ classdef IdealVIA
             k = u2*obj.max_stiffness;
         end
         function d = damping(obj, u3)
-            d = u3*obj.max_damping;
+            %d = u3*obj.max_damping;
+            
+            r = obj.ratio_load;
+            if u3 <= obj.u_max_regedamp
+                D1 = u3/obj.u_max_regedamp;
+                D2 = 0;
+            elseif u3 <= 1
+                D1 = 1;
+                D2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
+            end
+            
+            d = obj.max_rege_damping*D1 + obj.max_rege_damping*D2*r;
+            
         end
         
         function tau_d = torque_damp(obj, qdot, u3)
@@ -54,14 +66,20 @@ classdef IdealVIA
         end
         
         function power = power_rege(obj, qdot, u3)
-            alpha = obj.ratio_load/(1+obj.ratio_load);
+            
+            r = obj.ratio_load;
+            alpha = r/(1+r);
             if u3 <= obj.u_max_regedamp
-                D = u3/obj.u_max_regedamp;
-                power = obj.max_rege_damping*alpha*(qdot^2)*D;
+                D1 = u3/obj.u_max_regedamp;
+                D2 = 0;
             elseif u3 <= 1
-                D = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );
-                
+                D1 = 1;
+                D2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
             end
+            
+            power = obj.max_rege_damping*alpha*qdot^2*D1 - ...
+                obj.max_rege_damping*alpha*qdot^2*D2;
+            
         end
     end
     

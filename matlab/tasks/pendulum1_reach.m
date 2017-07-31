@@ -17,7 +17,14 @@ classdef pendulum1_reach
     end
     
     methods
-        function obj = pendulum1_reach()
+        function obj = pendulum1_reach(p)
+            obj.target = p.target;
+            obj.w_t = p.w_t;
+            obj.w_e = p.w_e;
+            
+            obj.w_tf = p.w_tf;
+            
+            obj.w_r = p.w_r;
             
         end
         
