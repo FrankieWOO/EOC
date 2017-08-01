@@ -17,3 +17,4 @@ ptask.w_r = 1;
 
 task = pendulum1_reach(ptask);
 %%
+f = robot.dynamics

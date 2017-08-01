@@ -37,13 +37,21 @@ classdef Pendulum1
             end
             obj.I = obj.m*(obj.l^2);
         end
+        function [xdot, xdot_x, xdot_u] = dynamics(obj, x, u)
+            qddot = obj.accel(x,u);
+            xdot = [x(2); qddot];
+            
+            if nargout > 1
+                
+            end
+        end
         
-        function accel = dynamics(obj, x, u)
+        function accel = accel(obj, x, u)
             torque = obj.torque(x, u);
             accel = (torque - obj.m*obj.g*obj.l*sin(x(1)) - obj.d*x(2))/obj.I;
         end
         
-        function accel = dynamics2(obj, x, u1, u2, u3)
+        function accel = accel2(obj, x, u1, u2, u3)
             % dynamic function for fixing u1, u2, or u3
             u = [u1;u2;u3];
             torque = obj.torque(x, u);
