@@ -53,6 +53,8 @@ x0 = [0;0];
 u0 = [0; 0.1; 0];
 
 result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
+
+%%
 figure
 plot(t, result0.x(1,:))
 hold on
