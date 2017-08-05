@@ -19,9 +19,24 @@ delta=1e-6;
 J = zeros(size(x));
 for i=1:length(x)
 	dx = zeros(size(x)); dx(i) = delta;
-	yp = f(x+dx);
-	ym = f(x-dx);
-	J(i) = ((yp - ym)/(2*delta));
+    try 
+        yp = f(x+dx);
+    catch
+        yp = NaN;
+    end
+    try
+        ym = f(x-dx);
+    catch
+        ym = NaN;
+    end
+    if isnan(yp)
+        J(i) = -ym/delta;
+    elseif isnan(ym)
+        J(i) = yp/delta;
+    else
+        J(i) = ((yp - ym)/(2*delta));
+    end
+    
 end
 end
 % (below is Doxygen documentation)

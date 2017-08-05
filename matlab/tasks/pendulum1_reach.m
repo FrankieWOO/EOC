@@ -12,7 +12,7 @@ classdef pendulum1_reach
         w_e
         w_tf
         w_r
-        
+        dt
         
     end
     
@@ -25,7 +25,7 @@ classdef pendulum1_reach
             obj.w_tf = p.w_tf;
             
             obj.w_r = p.w_r;
-            
+            obj.dt = p.dt;
         end
         
         function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_reach(obj, x, u, t)
@@ -97,7 +97,7 @@ classdef pendulum1_reach
             cost = c1*obj.w_t + ce*obj.w_e - p_rege*obj.w_r;
         end
         function cost = costf(obj, x)
-            cost = (x(1) - obj.target).^2 * dt * obj.w_tf;
+            cost = (x(1) - obj.target).^2 * obj.dt * obj.w_tf;
         end
         function cost = costf_reach(obj, x)
             % penalise both position and speed errors at T

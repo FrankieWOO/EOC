@@ -42,7 +42,24 @@ classdef Pendulum1
             xdot = [x(2); qddot];
             
             if nargout > 1
-                
+                %xdot_x = [0 1;
+                %         -obj.stiffness(u) -obj.damping(u)];
+                f = @(x)obj.accel(x,u);
+                 daccdx = get_jacobian_fd(f,x);
+                 if iscolumn(daccdx), daccdx = daccdx';end
+                 % Compute derivative of acceleration w.r.t. u
+                 %daccdu = zeros(1,model.dimU);
+                 f = @(u)obj.accel(x,u);
+                 daccdu = get_jacobian_fd(f,u);
+                 if iscolumn(daccdu), daccdu = daccdu'; end
+                 xdot_x = [0, 1;
+                             daccdx] ;
+                             
+           
+                 xdot_u = [zeros(1,3);
+                         daccdu]; 
+                         
+                    
             end
         end
         
@@ -62,7 +79,9 @@ classdef Pendulum1
             % q, qdot, u1, u2, u3
             tau = obj.actuator.torque(x(1),x(2),u(1),u(2),u(3));
         end
-        
+        function k = stiffness(obj, u)
+            k = obj.actuator.stiffness(u(2));
+        end
         function d = damping(obj, u)
             d = obj.actuator.damping(u(3));
         end
