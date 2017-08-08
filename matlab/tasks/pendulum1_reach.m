@@ -85,7 +85,9 @@ classdef pendulum1_reach
         function cost = costr_effort(obj, x, u)
             c1 = (x(1) - obj.target).^2;
             %ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
-            ce = (u(1) - obj.target)^2 + u(2)^2;
+            ce = (u(1) - obj.target)^2 + 0.5*u(2)^2 + 0.000001*u(3)^2;
+            %ce = u(1)^2 + 0.5*u(2)^2 + 0.000001*u(3)^2;
+            %ce = (u(1) - obj.target)^2;
             
             cost = c1*obj.w_t + ce*obj.w_e;
         end

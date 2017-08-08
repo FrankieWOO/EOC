@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.coder" plugin-version="R2016a">
-  <configuration file="C:\workspace\EOC\matlab\controllers\ilqr_single.prj" location="C:\workspace\EOC\matlab\controllers" name="ilqr_single" target="target.unifiedcoder" target-name="MATLAB Coder">
+  <configuration file="D:\workspace\EOC\matlab\controllers\ilqr_single.prj" location="D:\workspace\EOC\matlab\controllers" name="ilqr_single" target="target.unifiedcoder" target-name="MATLAB Coder">
     <profile key="profile.mex">
       <param.BuiltInstrumentedMex />
       <param.RanInstrumentedMex />
@@ -761,7 +761,7 @@
     <var.cfi.preBuildChecksum />
     <var.outdatedOnRestore />
     <var.lastUserSourceChecksum />
-    <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;C:\workspace\EOC\matlab\controllers\ilqr_single.m&lt;/file&gt;&lt;file&gt;C:\workspace\EOC\matlab\controllers\ILQRController.m&lt;/file&gt;&lt;file&gt;C:\workspace\EOC\matlab\controllers\OptController.m&lt;/file&gt;&lt;file&gt;C:\workspace\EOC\matlab\helper\H_cost_fd.m&lt;/file&gt;&lt;file&gt;C:\workspace\EOC\matlab\helper\J_cost_fd.m&lt;/file&gt;&lt;file&gt;C:\workspace\EOC\matlab\simulate\simulate_feedforward.m&lt;/file&gt;&lt;file&gt;C:\workspace\EOC\matlab\simulate\simulate_step.m&lt;/file&gt;&lt;file&gt;C:\workspace\EOC\matlab\value\evaluate_trajectory_cost_fh.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
+    <var.sourceSetState>&lt;?xml version="1.0" encoding="UTF-8" standalone="yes"?&gt;&lt;sourceModel&gt;&lt;primarySourceFiles&gt;&lt;file&gt;D:\workspace\EOC\matlab\controllers\ilqr_single.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\controllers\ILQRController.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\controllers\OptController.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\helper\findFirst.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\helper\H_cost_fd.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\helper\J_cost_fd.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\helper\scale_controlSeq.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\simulate\simulate_feedforward.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\simulate\simulate_step.m&lt;/file&gt;&lt;file&gt;D:\workspace\EOC\matlab\value\evaluate_trajectory_cost_fh.m&lt;/file&gt;&lt;/primarySourceFiles&gt;&lt;fixedPointSourceFiles/&gt;&lt;fixedPointSourceRegistered&gt;false&lt;/fixedPointSourceRegistered&gt;&lt;fixedPointSourceSelected&gt;false&lt;/fixedPointSourceSelected&gt;&lt;/sourceModel&gt;</var.sourceSetState>
     <param.forceMexBuild>false</param.forceMexBuild>
     <param.configImportActive>false</param.configImportActive>
     <var.boundToGui>true</var.boundToGui>
@@ -910,11 +910,11 @@
       <file>${PROJECT_ROOT}\ilqr_single.m</file>
     </fileset.inputtypes>
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\codegen\lib\ilqr_single" name="ilqr_single.lib" optional="false">C:\workspace\EOC\matlab\controllers\codegen\lib\ilqr_single\ilqr_single.lib</file>
+      <file location="${PROJECT_ROOT}\codegen\lib\ilqr_single" name="ilqr_single.lib" optional="false">D:\workspace\EOC\matlab\controllers\codegen\lib\ilqr_single\ilqr_single.lib</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>C:\Program Files\MATLAB\R2017a</root>
+      <root>D:\MATLAB\R2017a</root>
       <toolboxes>
         <toolbox name="fixedpoint" />
         <toolbox name="matlabcoder" />

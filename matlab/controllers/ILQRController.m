@@ -431,7 +431,7 @@ classdef ILQRController < OptController
             end
             if isfield(p,'lambda_factor'      ),lambda_factor       = p.lambda_factor      ;
             else
-                lambda_factor      = sqrt(10);
+                lambda_factor      = sqrt(sqrt(10));
             end
             if isfield(p,'lambda_max'         ),lambda_max          = p.lambda_max         ;
             else
