@@ -15,7 +15,7 @@ robot = Pendulum1(parm,pact);
 ptask = [];
 ptask.target = target;
 ptask.w_t = 1000;
-ptask.w_e = 1000;
+ptask.w_e = 1;
 ptask.w_tf = 1000;
 ptask.w_r = 0;
 ptask.dt = dt;
@@ -36,8 +36,8 @@ result0.x = simulate_feedforward(x0,f,result0.u,psim);
 opt_param = [];
 opt_param.umax = robot.umax;
 opt_param.umin = robot.umin;
-opt_param.lambda_init = 0.01;
-opt_param.lambda_max  = 1e8;
+opt_param.lambda_init = 0.5;
+opt_param.lambda_max  = 1e10;
 opt_param.iter_max = 300;
 opt_param.online_plotting = 0;
 opt_param.online_printing = 1;
@@ -49,7 +49,7 @@ opt_param.T = T;
 
 % u0 can be full command sequence or just initial point
 %u0 = result0.u;
-u0 = [target; 0.5; 0];
+u0 = [target; 0; 0];
 
 %result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
 %% pure regenerative braking
@@ -57,7 +57,10 @@ u3_max = robot.actuator.u_max_regedamp;
 opt_param2 = opt_param;
 opt_param2.umax(3) = u3_max;
 result2 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param2);
-result1 = ILQRController.ilqr(f, j1, dt, N, x0, result2.u, opt_param);
+result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
+
+%% fixed max rege power damping
+
 %%
 figure
 subplot(2,2,1)

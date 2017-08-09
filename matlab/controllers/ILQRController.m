@@ -408,8 +408,10 @@ classdef ILQRController < OptController
                 result.u = us{index_cost};
                 result.L = Ls{index_cost};
                 result.u0 = u0s(:,index_cost); %return the u0 that generate the best result
-                result.Ninit=Ninit;
+                result.Ninit = Ninit;
                 result.u0s = u0s;
+                result.cost = cost;
+                result.costs = costs;
                 %toc
                 fprintf(1,'Cost (evaluated on plant) = %f\n',cost);
         end
@@ -431,11 +433,11 @@ classdef ILQRController < OptController
             end
             if isfield(p,'lambda_factor'      ),lambda_factor       = p.lambda_factor      ;
             else
-                lambda_factor      = sqrt(sqrt(10));
+                lambda_factor      = 1.6;
             end
             if isfield(p,'lambda_max'         ),lambda_max          = p.lambda_max         ;
             else
-                lambda_max         = 1e-2    ;
+                lambda_max         = 1e10    ;
             end
             if isfield(p,'dcost_converge'     ),dcost_converge      = p.dcost_converge  ;
             else

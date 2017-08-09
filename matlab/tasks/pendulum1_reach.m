@@ -84,8 +84,9 @@ classdef pendulum1_reach
         end
         function cost = costr_effort(obj, x, u)
             c1 = (x(1) - obj.target).^2;
-            %ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
-            ce = (u(1) - obj.target)^2 + 0.5*u(2)^2 + 0.000001*u(3)^2;
+            ce = (u(1) - obj.target)^2 + u(2)^2 ;
+            %ce = (u(1) - x(1))^2 + u(2)^2 ;
+            %ce = ((u(1) - x(1))*u(2))^2 ;
             %ce = u(1)^2 + 0.5*u(2)^2 + 0.000001*u(3)^2;
             %ce = (u(1) - obj.target)^2;
             
@@ -94,7 +95,8 @@ classdef pendulum1_reach
         function cost = costr_effort_rege(obj, x, u)
             c1 = (x(1) - obj.target).^2;
             %ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
-            ce = (u(1) - obj.target)^2 + u(2)^2;
+            ce = (u(1) - obj.target)^2 + 0.5*u(2)^2 + 1e-6*u(3)^2;
+            
             p_rege = obj.robot_model.power_rege(x,u);
             cost = c1*obj.w_t + ce*obj.w_e - p_rege*obj.w_r;
         end

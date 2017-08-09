@@ -38,32 +38,37 @@ classdef Pendulum1
             obj.I = obj.m*(obj.l^2);
         end
         function [xdot, xdot_x, xdot_u] = dynamics(obj, x, u)
+            
             qddot = obj.accel(x,u);
             xdot = [x(2); qddot];
             
             if nargout > 1
-                %xdot_x = [0 1;
-                %         -obj.stiffness(u) -obj.damping(u)];
-                f = @(x)obj.accel(x,u);
-                 daccdx = get_jacobian_fd(f,x);
-                 if iscolumn(daccdx), daccdx = daccdx';end
-                 % Compute derivative of acceleration w.r.t. u
-                 %daccdu = zeros(1,model.dimU);
-                 f = @(u)obj.accel(x,u);
-                 daccdu = get_jacobian_fd(f,u);
-                 if iscolumn(daccdu), daccdu = daccdu'; end
-                 xdot_x = [0, 1;
-                             daccdx] ;
-                             
-           
-                 xdot_u = [zeros(1,3);
-                         daccdu]; 
+%                 xdot_x = [0 1;
+%                          -obj.stiffness(u) -obj.damping(u)];
+%                 xdot_u = [0 0 0;
+%                    obj.stiffness(u), (u(1)-x(1))*obj.actuator.max_stiffness,...
+%                    x(2)*obj.actuator.max_damping];
+                                f = @(x)obj.accel(x,u);
+                                 daccdx = get_jacobian_fd(f,x);
+                                 if iscolumn(daccdx), daccdx = daccdx';end
+                                 % Compute derivative of acceleration w.r.t. u
+                                 %daccdu = zeros(1,model.dimU);
+                                 f = @(u)obj.accel(x,u);
+                                 daccdu = get_jacobian_fd(f,u);
+                                 if iscolumn(daccdu), daccdu = daccdu'; end
+                                 xdot_x = [0, 1;
+                                             daccdx] ;
+                
+                
+                                 xdot_u = [zeros(1,3);
+                                         daccdu];
                          
                     
             end
         end
         
         function accel = accel(obj, x, u)
+            u = min(max(u,obj.umin),obj.umax);
             torque = obj.torque(x, u);
             accel = (torque - obj.m*obj.g*obj.l*sin(x(1)) - obj.d*x(2))/obj.I;
         end
