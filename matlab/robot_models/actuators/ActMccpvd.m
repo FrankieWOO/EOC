@@ -12,6 +12,7 @@ classdef ActMccpvd
         %damping_range = [0, 0.00848]; % 0.00848
         damping_range %= [0, 0.00848]; % 0.00848
         
+        
         J1 = 0.0099;
         K1 = 0.3811; % torque constant
         D1 = 0.2009;
@@ -31,6 +32,9 @@ classdef ActMccpvd
         Rl
         max_damping_db
         max_damping
+        max_rege_damping
+        
+        u_max_regedamp
     end
     
     methods
@@ -50,25 +54,43 @@ classdef ActMccpvd
             end
             
             obj.Rl = obj.Rd*obj.ratio_load;
-            obj.max_damping_db = obj.Kd^2 * obj.gear_d^2/obj.Rd ;
-            obj.max_damping = obj.Kd^2 * obj.gear_d^2/(obj.Rd+obj.Rl);
-            
+            obj.max_damping = obj.Kd^2 * obj.gear_d^2/obj.Rd ;
+            obj.max_rege_damping = obj.Kd^2 * obj.gear_d^2/(obj.Rd+obj.Rl);
+            obj.u_max_regedamp = 1/(1 + obj.ratio_load);
             obj.Id = obj.motor_inertia*obj.gear_d^2;
         end
         
         %variable damping
-        function d = damping(obj,duty_circle)
-            % duty_circle: 0-1
-            % 
-            % Fan: modified 18/06/17
-            d = obj.max_damping*obj.transm(duty_circle);
-            %d = obj.damping_range(1) + duty_circle.*(obj.damping_range(2)-obj.damping_range(1));
+        function d = damping(obj, u3)
+            
+            ratio = obj.ratio_load;
+            if u3 <= obj.u_max_regedamp
+                DC1 = u3/obj.u_max_regedamp;
+                DC2 = 0;
+            elseif u3 <= 1
+                DC1 = 1;
+                DC2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
+            end
+            
+            d = obj.max_rege_damping*DC1 + obj.max_rege_damping*DC2*ratio;
+            
         end
         
        
         
-        function p = p_damp_charge(obj, qdot, u)
-            p = obj.p_damp_inputelec(qdot,u)* obj.ratio_load/(1+obj.ratio_load);
+        function power = power_rege(obj, qdot, u)
+            ratio = obj.ratio_load;
+            alpha = ratio/(1+ratio);
+            if u3 <= obj.u_max_regedamp
+                DC1 = u3/obj.u_max_regedamp;
+                DC2 = 0;
+            elseif u3 <= 1
+                DC1 = 1;
+                DC2 = ( u - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
+            end
+            
+            power = obj.max_rege_damping*alpha*qdot^2*DC1 - ...
+                obj.max_rege_damping*alpha*qdot^2*DC2;
         end
         
         function p = p_damp_inputelec(obj, qdot, u)

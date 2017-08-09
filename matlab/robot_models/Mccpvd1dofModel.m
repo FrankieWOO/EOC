@@ -349,7 +349,7 @@ classdef Mccpvd1dofModel
             p = model.damping(x,u)*x(2)^2 ;
         end
         function p = power_rege(model, x, u)
-            p = model.actuator.p_damp_charge(x(2),u(3));
+            p = model.actuator.power_rege(x(2),u(3));
         end
         function power = net_power_load(model,x,u)
             % net output mechanical power on motor level
