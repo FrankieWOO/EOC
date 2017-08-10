@@ -81,12 +81,15 @@ classdef ActMccpvd
         function power = power_rege(obj, qdot, u)
             ratio = obj.ratio_load;
             alpha = ratio/(1+ratio);
-            if u3 <= obj.u_max_regedamp
-                DC1 = u3/obj.u_max_regedamp;
+            if u <= obj.u_max_regedamp
+                DC1 = u/obj.u_max_regedamp;
                 DC2 = 0;
-            elseif u3 <= 1
+            elseif u <= 1
                 DC1 = 1;
-                DC2 = ( u - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
+                DC2 = ( u - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp ); 
+            elseif u > 1
+                DC1 = 1;
+                DC2 = 1;
             end
             
             power = obj.max_rege_damping*alpha*qdot^2*DC1 - ...

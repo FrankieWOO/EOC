@@ -51,9 +51,9 @@ x0(5) = 0;
 cost_param = [];
 %cost_param.w0 = 1;
 
-cost_param.w_e = 1e-2;
+cost_param.w_e = 1e-6;
 cost_param.w_t = 1;
-cost_param.w_tf= 1*dt;
+cost_param.w_tf= cost_param.w_t*dt;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 0;
 cost_param.T = T;
@@ -99,8 +99,8 @@ opt_param.T = T;
 u0 = [cost_param.target; 0; 0];
 %u0 = [0; 0.1; 0];
 
-result1 = ILQRController.run_multiple(f, j1, dt, N, x0, u0, opt_param);
-result2 = ILQRController.run_multiple(f, j2, dt, N, x0, u0, opt_param);
+result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
+result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
 %result3 = ILQRController.ilqr(f, j3, dt, N, x0, result1.u, opt_param);
 
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
@@ -151,3 +151,13 @@ hold on
 plot(result2.u(3,:))
 %plot(result3.u(3,:))
 hold off
+
+%%
+% 
+% uu3 = 0:0.01:1;
+% for i=1:length(uu3)
+%     dd(i) = robot.actuator.damping(uu3(i));
+%     pp(i) = robot.actuator.power_rege(1,uu3(i));
+% end
+% figure
+% plot(uu3, dd, uu3, pp)
