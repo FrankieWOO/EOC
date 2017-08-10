@@ -69,8 +69,8 @@ classdef Mccpvd1dofModel
         %%%% control input limits
         % u1 and u2 are defined in rad; round to int and below the physical
         % limit to protect the servo
-        umax = [ 1; 2; 1] ;
-        umin = [-1; 0; 0] ;
+        umax = [ pi/3; pi/2; 1] ;
+        umin = [-pi/3; 0; 0] ;
         %%%%
         
         

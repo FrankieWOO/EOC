@@ -82,7 +82,7 @@ j2 = @(x,u,t)task1.j_load_posi_rege(x,u,t);
 
 %%
 opt_param = [];
-opt_param.umax = robot_model.umax;
+opt_param.umax = robot_model.umax; 
 opt_param.umin = robot_model.umin;
 opt_param.lambda_init = 0.01;
 opt_param.lambda_max  = 50000;

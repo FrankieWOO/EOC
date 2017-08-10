@@ -1,4 +1,3 @@
-
 target = pi/3;
 T = 1;
 dt = 0.02;
@@ -14,15 +13,16 @@ robot = Pendulum1(parm,pact);
 %%%% create task
 ptask = [];
 ptask.target = target;
+ptask.model = robot;
 ptask.w_t = 1000;
 ptask.w_e = 1;
 ptask.w_tf = 1000;
-ptask.w_r = 0;
+ptask.w_r = 1;
 ptask.dt = dt;
 task = pendulum1_reach(ptask);
 x0 = [0;0];
 f = @(x,u)robot.dynamics(x,u);
-j1 = @(x,u,t)task.j_fastreach(x,u,t);
+j1 = @(x,u,t)task.j_fastreach_rege(x,u,t);
 
 %% critical damped
 psim.dt = 0.02;
@@ -34,8 +34,8 @@ result0.u = repmat( [target; result0.k/pact.max_stiffness; result0.d/pact.max_da
 result0.x = simulate_feedforward(x0,f,result0.u,psim);
 %% dynamic braking & hybrid mode
 opt_param = [];
-opt_param.umax = robot.umax;
-opt_param.umin = robot.umin;
+opt_param.umax = robot.umax; opt_param.umax(3) = 1;
+opt_param.umin = robot.umin; 
 opt_param.lambda_init = 0.5;
 opt_param.lambda_max  = 1e10;
 opt_param.iter_max = 300;
@@ -92,13 +92,12 @@ hold on
 plot(t(1:end-1), result0.u(3,:)*robot.actuator.max_damping)
 plot(t(1:end-1), result1.u(3,:)*robot.actuator.max_damping)
 plot(t(1:end-1), result2.u(3,:)*robot.actuator.max_damping)
-
 %%
-uu3 = 0:0.01:1;
-for i=1:length(uu3)
-    dd(i) = robot.actuator.damping(uu3(i));
-    pp(i) = robot.actuator.power_rege(1,uu3(i));
-end
-figure
-plot(uu3, dd, uu3, pp)
+% uu3 = 0:0.01:1;
+% for i=1:length(uu3)
+%     dd(i) = robot.actuator.damping(uu3(i));
+%     pp(i) = robot.actuator.power_rege(1,uu3(i));
+% end
+% figure
+% plot(uu3, dd, uu3, pp)
 

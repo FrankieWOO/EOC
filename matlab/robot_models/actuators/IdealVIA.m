@@ -74,7 +74,10 @@ classdef IdealVIA
                 D2 = 0;
             elseif u3 <= 1
                 D1 = 1;
-                D2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
+                D2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );  
+            elseif u3 > 1
+                D1 = 1;
+                D2 = 1;
             end
             
             power = obj.max_rege_damping*alpha*qdot^2*D1 - ...
