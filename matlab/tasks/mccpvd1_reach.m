@@ -176,7 +176,9 @@ classdef mccpvd1_reach
             c1 = (x(1) - self.target).^2;
             %ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
             ce = (u(1) - self.target)^2 + u(2)^2;
+            
             p_rege = self.robot_model.power_rege(x,u);
+            
             c = c1*self.w_t + sum(u.^2,1) * self.epsilon ...
                 + ce*self.w_e - p_rege*self.w_r;
         end
