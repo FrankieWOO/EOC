@@ -84,12 +84,12 @@ opt_param.T = T;
 opt_param.umin(1) = target;
 opt_param.umax(1) = target;
 
-opt_param.umin(2) = x0(4);
-opt_param.umax(2) = x0(4);
+%opt_param.umin(2) = x0(4);
+%opt_param.umax(2) = x0(4);
 
 % u0 can be full command sequence or just initial point
 %u0 = result0.u;
-u0 = [target; 0; 0];
+u0 = [target; x0(4); 0];
 
 
 
@@ -97,7 +97,7 @@ u0 = [target; 0; 0];
 psim.dt = 0.02;
 psim.solver = 'rk4';
 
-result0.u = repmat([target; 0; 0],1,N-1);
+result0.u = repmat([target; x0(4); 0],1,N-1);
 result0.x = repmat(x0,1,N);
 for i = 1:N-1
     result0.k(i) = robot_model.stiffness( result0.x(:,i) );

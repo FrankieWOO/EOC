@@ -22,8 +22,9 @@ classdef ActMccpvd
         D2 = 0.2009;
         R2 = 0.8222;
         
-        %b = 0.0007382;
-        b = 0;
+        b = 0.0007382;
+        %b = 0;
+        %b = 0.0002;
         
         %%%% - damping motor - %%%%
         motor_inertia = 4.6*10^(-6);
