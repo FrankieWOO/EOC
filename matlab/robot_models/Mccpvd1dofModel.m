@@ -128,6 +128,7 @@ classdef Mccpvd1dofModel
             end
             model.inertia = model.inertia_l + model.actuator.Id;
             model.mass = model.link_mass + model.servo1_mass;
+            model.Df = model.Df + model.actuator.b*model.actuator.gear_d;
             %model = model.init_symfuns();
 
         end
@@ -246,13 +247,13 @@ classdef Mccpvd1dofModel
             k =  model.actuator.stiffness(x(1),x(3),x(4));
         end
         function dr = damping_ratio(model, x, u)
-            b = model.Df + model.damping(x,u);
+            b = model.Df + model.damping(u);
             k = model.stiffness(x);
             dr = b/(2*sqrt(k*model.inertia));
         end
         
         %variable damping
-        function d = damping(model,~,u)
+        function d = damping(model, u)
             % duty_circle: 0-1
             % linear on duty-circle
             d = model.actuator.damping(u(3));
@@ -346,7 +347,7 @@ classdef Mccpvd1dofModel
         end
         
         function p = power_damp(model,x,u)
-            p = model.damping(x,u)*x(2)^2 ;
+            p = model.damping(u)*x(2)^2 ;
         end
         function p = power_rege(model, x, u)
             p = model.actuator.power_rege(x(2),u(3));

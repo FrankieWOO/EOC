@@ -885,7 +885,7 @@ classdef mccpvd1_reach
             %cost = evaluate_trajectory_cost_fh();
             for i = 1:length(t)-1
                 stiffness(i) = self.robot_model.stiffness(x(:,i));
-                damping(i) = self.robot_model.damping(x,u(:,i));
+                damping(i) = self.robot_model.damping(u(:,i));
                 b(i) = damping(i) + self.robot_model.Df;
                 damping_ratio(i) = self.robot_model.damping_ratio(x(:,i),u(:,i));
                 p_outmech(i) = self.robot_model.output_mechpower(x(:,i),u(:,i));
