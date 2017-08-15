@@ -84,6 +84,9 @@ classdef Pendulum1
             % q, qdot, u1, u2, u3
             tau = obj.actuator.torque(x(1),x(2),u(1),u(2),u(3));
         end
+        function tau = torque_k(obj,x ,u)
+            tau = obj.actuator.torque_k(x(1), u(1), u(2));
+        end
         function k = stiffness(obj, u)
             k = obj.actuator.stiffness(u(2));
         end

@@ -42,6 +42,11 @@ classdef IdealVIA
             d = obj.damping(u3);
             tau = k*(u1 - q) - d*qdot;
         end
+        function tau = torque_k(obj, q, u1, u2)
+            k = obj.stiffness(u2);
+            
+            tau = k*(u1 - q) ;
+        end
         function k = stiffness(obj, u2)
             k = u2*obj.max_stiffness + 10;
         end

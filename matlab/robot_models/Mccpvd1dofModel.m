@@ -69,7 +69,7 @@ classdef Mccpvd1dofModel
         %%%% control input limits
         % u1 and u2 are defined in rad; round to int and below the physical
         % limit to protect the servo
-        umax = [ pi/3; pi/2; 1] ;
+        umax = [ pi/3; pi/4; 1] ;
         umin = [-pi/3; 0; 0] ;
         %%%%
         
@@ -200,7 +200,7 @@ classdef Mccpvd1dofModel
             [xdot2, xdot2_x, xdot2_u] = model.motor_dynamics_2nd(x(3:end),u(1:2));
             
             xdot  = [xdot1;
-                    xdot2];
+                     xdot2 ];
             % current motor positions
             %m     = [x(3);x(4)] ; 
             if nargout > 1
@@ -213,19 +213,19 @@ classdef Mccpvd1dofModel
                  %daccdx = zeros(1,model.dimX);
                  f = @(x)model.cmptAcc(x,u);
                  daccdx = get_jacobian_fd(f,x);
-                 if iscolumn(daccdx), daccdx = daccdx';end
+                 if iscolumn(daccdx), daccdx = daccdx'; end
                  % Compute derivative of acceleration w.r.t. u
                  %daccdu = zeros(1,model.dimU);
                  f = @(u)model.cmptAcc(x,u);
                  daccdu = get_jacobian_fd(f,u);
                  if iscolumn(daccdu), daccdu = daccdu'; end
-                 xdot_x = [0, 1, zeros(1,4);
-                             daccdx          ;
-                             zeros(4,2), xdot2_x];
+                 xdot_x = [0, 1, zeros(1,4) ;
+                           daccdx           ;
+                           zeros(4,2), xdot2_x];
            
-                 xdot_u = [zeros(1,3);
-                         daccdu; 
-                         xdot2_u,zeros(4,1)];
+                 xdot_u = [zeros(1,3) ;
+                           daccdu     ; 
+                           xdot2_u,zeros(4,1)];
              end
         end
         

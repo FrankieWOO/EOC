@@ -50,6 +50,8 @@ opt_param.T = T;
 
 opt_param.umax(1) = target;
 opt_param.umin(1) = target;
+%opt_param.umax(2) = 0.5;
+%opt_param.umin(2) = 0.5;
 
 % u0 can be full command sequence or just initial point
 %u0 = result0.u;
@@ -69,25 +71,49 @@ opt_param3 = opt_param;
 opt_param3.umax(3) = u3_max;
 opt_param3.umin(3) = u3_max;
 result3 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param3);
-%%
-for i = 1:N-1
-    Prege0(i) = robot.power_rege(result0.x(:,i), result0.u(:,i));
-end
-E0 = sum(Prege0);
-for i = 1:N-1
-    Prege1(i) = robot.power_rege(result1.x(:,i), result1.u(:,i));
-end
-E1 = sum(Prege1);
-for i = 1:N-1
-    Prege2(i) = robot.power_rege(result2.x(:,i), result2.u(:,i));
-end
-E2 = sum(Prege2);
-for i = 1:N-1
-    Prege3(i) = robot.power_rege(result3.x(:,i), result3.u(:,i));
-end
-E3 = sum(Prege3);
 
-E4 = 0;
+%%
+tsim = 0:0.001:T;
+result1.usim = scale_controlSeq(result1.u,t(1:end-1),tsim(1:end-1));
+psim.solver = 'rk4';
+psim.dt = 0.001;
+[result1.xsim] = simulate_feedforward(x0,f,result1.usim,psim);
+
+result2.usim = scale_controlSeq(result2.u,t(1:end-1),tsim(1:end-1));
+result2.xsim = simulate_feedforward(x0,f,result2.usim,psim);
+
+result3.usim = scale_controlSeq(result3.u,t(1:end-1),tsim(1:end-1));
+result3.xsim = simulate_feedforward(x0,f,result3.usim,psim);
+
+result0.usim = scale_controlSeq(result0.u,t(1:end-1),tsim(1:end-1));
+result0.xsim = simulate_feedforward(x0,f,result0.usim,psim);
+%%
+for i = 1:length(tsim)-1
+    Prege0(i) = robot.power_rege(result0.xsim(:,i), result0.usim(:,i));
+    tau0(i) = robot.torque_k(result0.xsim(:,i), result0.usim(:,i));
+end
+E0 = sum(Prege0)*psim.dt;
+zeta0 = E0/(sum(tau0.*result0.xsim(2,1:end-1))*psim.dt);
+for i = 1:length(tsim)-1
+    Prege1(i) = robot.power_rege(result1.xsim(:,i), result1.usim(:,i));
+    tau1(i) = robot.torque_k(result1.xsim(:,i), result1.usim(:,i));
+end
+E1 = sum(Prege1)*psim.dt;
+zeta1 = E1/(sum(tau1.*result1.xsim(2,1:end-1))*psim.dt);
+for i = 1:length(tsim)-1
+    Prege2(i) = robot.power_rege(result2.xsim(:,i), result2.usim(:,i));
+    tau2(i) = robot.torque_k(result2.xsim(:,i), result2.usim(:,i));
+end
+E2 = sum(Prege2)*0.001;
+Ek2 = sum(tau2.*result2.xsim(2,1:end-1))*0.001;
+zeta2 = E2/Ek2;
+for i = 1:length(tsim)-1
+    Prege3(i) = robot.power_rege(result3.xsim(:,i), result3.usim(:,i));
+    tau3(i) = robot.torque_k(result3.xsim(:,i), result3.usim(:,i));
+end
+E3 = sum(Prege3)*psim.dt;
+zeta3 = E3/(sum(tau3.*result3.xsim(2,1:end-1))*psim.dt);
+E4 = 0; zeta4=0;
 %%
 figure
 subplot(3,2,1)
@@ -98,7 +124,7 @@ plot(t, result1.x(1,:),'r-','LineWidth',1)
 plot(t, result2.x(1,:),'b-.','LineWidth',1)
 plot(t, result3.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
-
+legend('C.D.','hybrid & dynamic','regenerative','fixed damping')
 subplot(3,2,2)
 hold on
 plot(t(1:end-1), result0.u(1,:),'--')
@@ -123,7 +149,15 @@ plot(t(1:end-1), result0.u(3,:)*robot.actuator.max_damping,'--')
 plot(t(1:end-1), result1.u(3,:)*robot.actuator.max_damping,'r-','LineWidth',1)
 plot(t(1:end-1), result2.u(3,:)*robot.actuator.max_damping,'b-.')
 plot(t(1:end-1), result3.u(3,:)*robot.actuator.max_damping,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+hold off
 
 subplot(3,2,5)
 c = categorical({'C.D.','dynamic','regenerative','hybrid','fixed damp'});
-bar(c, [E0,E4,E2,E1,E3], 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.5)
+Y = [E0/zeta0,E1/zeta1,E2/zeta2,E1/zeta1,E3/zeta3];
+Erege = [E0,E4,E2,E1,E3];
+hold on
+bar(c, Y, 'FaceColor',[0.5 0 .5],'EdgeColor',[0.9 0 .9],'LineWidth',1.5)
+bar(c, Erege, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.5)
+hold off
+
+%%

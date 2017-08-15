@@ -22,9 +22,9 @@ classdef ActMccpvd
         D2 = 0.2009;
         R2 = 0.8222;
         
-        b = 0.0007382;
+        %b = 0.0007382;
         %b = 0;
-        %b = 0.0002;
+        b = 0.0002;
         
         %%%% - damping motor - %%%%
         motor_inertia = 4.6*10^(-6);
@@ -66,18 +66,22 @@ classdef ActMccpvd
         
         %variable damping
         function d = damping(obj, u3)
-            
-            ratio = obj.ratio_load;
-            if u3 <= obj.u_max_regedamp
-                DC1 = u3/obj.u_max_regedamp;
-                DC2 = 0;
-            elseif u3 <= 1
-                DC1 = 1;
-                DC2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
-            end
-            
-            d = obj.max_rege_damping*DC1 + obj.max_rege_damping*DC2*ratio;
-            
+%             
+%             ratio = obj.ratio_load;
+%             if u3 < 0
+%                 power = NaN;
+%                  return;
+%             elseif u3 <= obj.u_max_regedamp
+%                 DC1 = u3/obj.u_max_regedamp;
+%                 DC2 = 0;
+%             elseif u3 <= 1
+%                 DC1 = 1; 
+%                 DC2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
+%             end
+%             
+%             d = obj.max_rege_damping*DC1 + obj.max_rege_damping*DC2*ratio;
+%             
+            d = obj.max_damping*u3;
         end
         
        
@@ -85,13 +89,18 @@ classdef ActMccpvd
         function power = power_rege(obj, qdot, u)
             ratio = obj.ratio_load;
             alpha = ratio/(1+ratio);
-            if u <= obj.u_max_regedamp
+            
+            %power = NaN;
+            if u < 0
+                DC1 = 0;
+                DC2 = 0;
+            elseif u <= obj.u_max_regedamp
                 DC1 = u/obj.u_max_regedamp;
                 DC2 = 0;
             elseif u <= 1
                 DC1 = 1;
                 DC2 = ( u - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp ); 
-            elseif u > 1
+            else
                 DC1 = 1;
                 DC2 = 1;
             end
