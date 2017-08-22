@@ -1,6 +1,6 @@
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 20;
+param_act.gear_d = 50;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -63,7 +63,7 @@ task1 = mccpvd1_reach(robot_model, cost_param);
 %cost_param2=cost_param;
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
-j1 = @(x,u,t)task1.j_effort(x,u,t);
+j1 = @(x,u,t)task1.j_effort_rege(x,u,t);
 %j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
 
 
