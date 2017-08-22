@@ -1,6 +1,6 @@
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 100;
+param_act.gear_d = 20;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -9,7 +9,7 @@ param_act.gear_d = 100;
 %param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-robot_param.inertia_l = 0.0010;
+robot_param.inertia_l = 0.0016;
 %robot_param.Df = 0.01;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 

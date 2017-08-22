@@ -128,7 +128,7 @@ classdef Mccpvd1dofModel
             end
             model.inertia = model.inertia_l + model.actuator.Id;
             model.mass = model.link_mass + model.servo1_mass;
-            model.Df = model.Df + model.actuator.b*model.actuator.gear_d;
+            model.Df = 0.01;
             %model = model.init_symfuns();
 
         end
