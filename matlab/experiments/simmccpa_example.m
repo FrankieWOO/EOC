@@ -1,6 +1,6 @@
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 50;
+param_act.gear_d = 100;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -63,7 +63,7 @@ task1 = mccpvd1_reach(robot_model, cost_param);
 %cost_param2=cost_param;
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
-j1 = @(x,u,t)task1.j_effort_rege(x,u,t);
+j1 = @(x,u,t)task1.j_effort(x,u,t);
 %j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
 
 
@@ -191,45 +191,51 @@ result2.E = sum(result2.Plink)*psim.dt;
 result3.E = sum(result3.Plink)*psim.dt;
 %%
 figure
-subplot(2,3,1)
+subplot(2,2,1)
 
 hold on
-plot(t, result3.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+
 plot(t, result0.x(1,:),'--')
 %plot(t, ones(1,N)*target)
-plot(t, result1.x(1,:),'r-','LineWidth',1)
+plot(t, result1.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 3)
+plot(t, result1.x(1,:),'k-','LineWidth',1)
 plot(t, result2.x(1,:),'b-.','LineWidth',1)
-
+plot(t, result3.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+legend('C.D.','dynamic', 'hybrid','regenerative','fixed damping')
 hold off
 
 % equilibrium position
-subplot(2,3,2)
-hold on
-plot(t, result3.x(3,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
-
-plot(t, result0.x(3,:),'--')
-plot(t, result1.x(3,:),'r-','LineWidth',1)
-plot(t, result2.x(3,:),'b-.','LineWidth',1)
-hold off
+% subplot(2,3,2)
+% hold on
+% plot(t, result3.x(3,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+% 
+% plot(t, result0.x(3,:),'--')
+% plot(t, result1.x(3,:),'r-','LineWidth',1)
+% plot(t, result2.x(3,:),'b-.','LineWidth',1)
+% hold off
 % stiffness
-subplot(2,3,3)
+subplot(2,2,2)
 hold on
-plot(t(1:end-1), result3.k,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
 plot(t(1:end-1), result0.k,'--')
+plot(t(1:end-1), result1.k,'-','Color', [1 0.6 0.6], 'LineWidth', 3)
 plot(t(1:end-1), result1.k,'r-','LineWidth',1)
 plot(t(1:end-1), result2.k,'b-.','LineWidth',1)
+plot(t(1:end-1), result3.k,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+
 hold off
 % damping
-subplot(2,3,4)
+subplot(2,2,3)
 hold on
-plot(t(1:end-1), result3.d,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
 plot(t(1:end-1), result0.d,'--')
+plot(t(1:end-1), result1.d,'-','Color', [1 0.6 0.6], 'LineWidth', 3)
 plot(t(1:end-1), result1.d,'r-','LineWidth',1)
 plot(t(1:end-1), result2.d,'b-.','LineWidth',1)
+plot(t(1:end-1), result3.d,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+hold off
 
-subplot(2,3,5)
+subplot(2,2,4)
 hold on
 c = categorical({'C.D.','dynamic','regenerative','hybrid','fixed damp'});
 E = [result0.E, result1.E, result2.E, result1.E, result3.E];

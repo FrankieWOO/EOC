@@ -120,15 +120,19 @@ subplot(3,2,1)
 plot(t, result0.x(1,:),'--')
 hold on
 %plot(t, ones(1,N)*target)
-plot(t, result1.x(1,:),'r-','LineWidth',1)
+plot(t, result1.x(1,:),'-','LineWidth',3,'Color', [1 0.6 0.6])
+plot(t, result1.x(1,:),'k-','LineWidth',1)
+
 plot(t, result2.x(1,:),'b-.','LineWidth',1)
 plot(t, result3.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
-legend('C.D.','hybrid & dynamic','regenerative','fixed damping')
+legend('C.D.','dynamic', 'hybrid','regenerative','fixed damping')
 subplot(3,2,2)
 hold on
 plot(t(1:end-1), result0.u(1,:),'--')
-plot(t(1:end-1), result1.u(1,:),'r-','LineWidth',1)
+plot(t(1:end-1), result1.u(1,:),'-','LineWidth',3,'Color', [1 0.6 0.6])
+
+plot(t(1:end-1), result1.u(1,:),'k-','LineWidth',1)
 plot(t(1:end-1), result2.u(1,:),'b-.','LineWidth',1)
 plot(t(1:end-1), result3.u(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
@@ -138,7 +142,9 @@ hold off
 subplot(3,2,3)
 hold on
 plot(t(1:end-1), result0.u(2,:)*robot.actuator.max_stiffness,'--')
-plot(t(1:end-1), result1.u(2,:)*robot.actuator.max_stiffness,'r-','LineWidth',1)
+plot(t(1:end-1), result1.u(2,:)*robot.actuator.max_stiffness,'-','LineWidth',3,'Color', [1 0.6 0.6])
+
+plot(t(1:end-1), result1.u(2,:)*robot.actuator.max_stiffness,'k-','LineWidth',1)
 plot(t(1:end-1), result2.u(2,:)*robot.actuator.max_stiffness,'b-.','LineWidth',1)
 plot(t(1:end-1), result3.u(2,:)*robot.actuator.max_stiffness,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
@@ -146,7 +152,9 @@ hold off
 subplot(3,2,4)
 hold on
 plot(t(1:end-1), result0.u(3,:)*robot.actuator.max_damping,'--')
-plot(t(1:end-1), result1.u(3,:)*robot.actuator.max_damping,'r-','LineWidth',1)
+plot(t(1:end-1), result1.u(3,:)*robot.actuator.max_damping,'-','LineWidth',3,'Color', [1 0.6 0.6])
+
+plot(t(1:end-1), result1.u(3,:)*robot.actuator.max_damping,'k-','LineWidth',1)
 plot(t(1:end-1), result2.u(3,:)*robot.actuator.max_damping,'b-.')
 plot(t(1:end-1), result3.u(3,:)*robot.actuator.max_damping,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
