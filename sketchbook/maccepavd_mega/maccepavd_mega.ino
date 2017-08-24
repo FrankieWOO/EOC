@@ -17,15 +17,23 @@
 
 int pin_servo1 = 11;
 int pin_servo2 = 12;
-int pin_damping = 5;
-
+//define switch pins. For mega2560, 2 3 5 is timer 3, 6 is timer 4. all pins default 490Hz
+// except 4,13 (timer 0).
+int S1 = 2;
+int S2 = 3;
+int S3 = 5;
+int S4 = 6;
 int pin_jointsensor = 0;
 int pin_servo1sensor = 1;
 int pin_servo2sensor = 2;
 int pin_current_damping = 5;
 int pin_current_servo1 = 3;
 int pin_current_servo2 = 4;
+
 float Vcc;
+
+int D1 = 0;
+int D2 = 0;
 
 //float joint_read;
 //float servo1_read;
@@ -42,7 +50,7 @@ union{
   struct{
     unsigned int u1; // servo command of servo1
     unsigned int u2;
-    unsigned int u3;
+    float u3;
   };
   unsigned int values[2];
 }command_buffer;
@@ -51,7 +59,15 @@ void command_cb(const maccepavd::CommandRaw& cmd_msg){
   command_buffer.u1 = cmd_msg.u1;
   command_buffer.u2 = cmd_msg.u2;
   command_buffer.u3 = cmd_msg.u3;
-  analogWrite(pin_damping,cmd_msg.u3);
+  if(cmd_msg.u3 <= 0.5){
+    D1 = map( cmd_msg.u3, 0, 0.5, 0, 255);
+    D2 = 0;
+  }
+  else {
+    D1 = 1;
+    D2 = map( cmd_msg.u3, 0.5, 1, 0, 255);
+  }
+  //analogWrite(pin_damping,cmd_msg.u3);
 }
 
 ros::Subscriber<maccepavd::CommandRaw> sub("command_raw",command_cb);

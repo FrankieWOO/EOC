@@ -219,7 +219,7 @@ hold on
 
 plot(t(1:end-1), result0.k,'--')
 plot(t(1:end-1), result1.k,'-','Color', [1 0.6 0.6], 'LineWidth', 3)
-plot(t(1:end-1), result1.k,'r-','LineWidth',1)
+plot(t(1:end-1), result1.k,'k-','LineWidth',1)
 plot(t(1:end-1), result2.k,'b-.','LineWidth',1)
 plot(t(1:end-1), result3.k,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
@@ -230,7 +230,7 @@ hold on
 
 plot(t(1:end-1), result0.d,'--')
 plot(t(1:end-1), result1.d,'-','Color', [1 0.6 0.6], 'LineWidth', 3)
-plot(t(1:end-1), result1.d,'r-','LineWidth',1)
+plot(t(1:end-1), result1.d,'k-','LineWidth',1)
 plot(t(1:end-1), result2.d,'b-.','LineWidth',1)
 plot(t(1:end-1), result3.d,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
