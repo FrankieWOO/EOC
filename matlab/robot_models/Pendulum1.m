@@ -6,7 +6,7 @@ classdef Pendulum1
         m = 1
         l = 1
         g = 0
-        d = 0.01
+        b = 0.01
         I
         actuator
         has_gravity = false
@@ -28,6 +28,9 @@ classdef Pendulum1
                 if isfield(p, 'umin'), obj.umin = p.umin;end
                 if isfield(p, 'umax'), obj.umax = p.umax;end
                 if isfield(p, 'dimU'), obj.dimU = p.dimU;end
+                if isfield(p, 'm'), obj.m = p.m;end
+                if isfield(p, 'l'), obj.l = p.l;end
+                if isfield(p, 'b'), obj.b = p.b;end
             end
             if nargin > 1
                 p_act = varargin{2};
@@ -70,14 +73,14 @@ classdef Pendulum1
         function accel = accel(obj, x, u)
             u = min(max(u,obj.umin),obj.umax);
             torque = obj.torque(x, u);
-            accel = (torque - obj.m*obj.g*obj.l*sin(x(1)) - obj.d*x(2))/obj.I;
+            accel = (torque - obj.m*obj.g*obj.l*sin(x(1)) - obj.b*x(2))/obj.I;
         end
         
         function accel = accel2(obj, x, u1, u2, u3)
             % dynamic function for fixing u1, u2, or u3
             u = [u1;u2;u3];
             torque = obj.torque(x, u);
-            accel = (torque - obj.m*obj.g*obj.l*sin(x(1)) - obj.d*x(2))/obj.I;
+            accel = (torque - obj.m*obj.g*obj.l*sin(x(1)) - obj.b*x(2))/obj.I;
         end
         
         function tau = torque(obj, x, u)

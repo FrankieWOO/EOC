@@ -1,6 +1,6 @@
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 100;
+param_act.gear_d = 20;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -13,16 +13,16 @@ robot_param.inertia_l = 0.0016;
 %robot_param.Df = 0.01;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
-target = pi/6;
-T = 2;
+target = 0;
+T = 1.5;
 dt = 0.02;
 N = T/dt + 1;
 t = 0:dt:T;
 %alpha = 0.7;
-position0 = 0;
+position0 = pi/4;
 x0 = zeros(6,1); 
 x0(1) = position0;
-x0(3) = 0; % initial motor1
+x0(3) = pi/4; % initial motor1
 x0(4) = 0; % initial motor2
 
 % task_param = [];
@@ -84,8 +84,8 @@ opt_param.T = T;
 opt_param.umin(1) = target;
 opt_param.umax(1) = target;
 
-%opt_param.umin(2) = x0(4);
-%opt_param.umax(2) = x0(4);
+opt_param.umin(2) = x0(4);
+opt_param.umax(2) = x0(4);
 
 % u0 can be full command sequence or just initial point
 %u0 = result0.u;

@@ -3,13 +3,13 @@
 % M * qddot + D_f * qdot = Tau
 format long
 
-robot_model = Maccepavd1dof();
+%robot_model = Maccepavd1dof();
 act = ActMccpvd();
 
-filelist = dir('data/*.csv');
+filelist = dir('newdata/*.csv');
 filelist = {filelist.name};
 nfiles = length(filelist);
-dataset = cellfun(@(x)readtable(x),fullfile('data',filelist),'UniformOutput',0);
+dataset = cellfun(@(x)readtable(x),fullfile('newdata',filelist),'UniformOutput',0);
 data = cell(size(dataset));
 for i = 1:nfiles
 data{i}.t = dataset{1}.(3);
@@ -49,9 +49,10 @@ a = 1;
 for i = 1:nfiles
 data{i}.theta1 = data{i}.u1;
 data{i}.theta2 = data{i}.u2;
-data{i}.dt = mean(diff(data{i}.t))*10^(-9);
+%data{i}.dt = mean(diff(data{i}.t))*10^(-9);
+data{i}.dt = 0.015;
 data{i}.qdot = diff(data{i}.q)/data{i}.dt;
-data{i}.qdot = filter(b,a,data{i}.qdot);
+%data{i}.qdot = filter(b,a,data{i}.qdot);
 data{i}.qddot = diff(data{i}.qdot)/data{i}.dt;
 data{i}.qddot = filter(b,a,data{i}.qddot);
 data{i}.tau = act.torque_spring(data{i}.q,data{i}.theta1,data{i}.theta2);

@@ -25,7 +25,7 @@ classdef Mccpvd1dofModel
         
         link_length = 0.15;% link length
         link_mass = 0.09;
-        com = 0.075;
+        com = 0.085;
         mass
         
         
@@ -55,11 +55,11 @@ classdef Mccpvd1dofModel
         % Fan: estimated by data  %calculated inertia: 0.00135
         % 
         inertia
-        inertia_l = 0.0016 
+        inertia_l = 0.0015
         % frictions
         % viscous friction
         % Fan: 0.0022 estimated by data;
-        Df = 0.0022 
+        Df = 0.0023
         % coulomb friction
         coulomb_friction = 0;
         % gravity constant
@@ -126,9 +126,9 @@ classdef Mccpvd1dofModel
             else
                 model.actuator = ActMccpvd();
             end
-            model.inertia = model.inertia_l + model.actuator.Id;
+            %model.inertia = model.inertia_l + model.actuator.Id;
             model.mass = model.link_mass + model.servo1_mass;
-            model.Df = 0.01;
+            
             %model = model.init_symfuns();
 
         end
