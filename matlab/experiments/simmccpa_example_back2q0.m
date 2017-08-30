@@ -241,9 +241,10 @@ hold on
 c = categorical({'C.D.','dynamic','regenerative','hybrid','fixed damp'});
 E = [result0.E, result1.E, result2.E, result1.E, result3.E];
 Erege = [result0.Erege, 0, result2.Erege, result1.Erege, result3.Erege];
+Enet = E - Erege;
 zeta = Erege./E;
 bar(c, E, 'FaceColor',[0.5 0 .5],'EdgeColor',[0.9 0 .9],'LineWidth',1.0)
-bar(c, Erege, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.0)
+bar(c, Enet, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.0)
 hold off
 %%
 % uu3 = 0:0.01:1; 
