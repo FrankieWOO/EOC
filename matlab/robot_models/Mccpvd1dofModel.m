@@ -54,8 +54,8 @@ classdef Mccpvd1dofModel
         %%%% dynamical properties
         % Fan: estimated by data  %calculated inertia: 0.00135
         % 
-        inertia
-        inertia_l = 0.0015
+        inertia = 0.0015
+        inertia_l %= 0.0015
         % frictions
         % viscous friction
         % Fan: 0.0022 estimated by data;
@@ -69,7 +69,7 @@ classdef Mccpvd1dofModel
         %%%% control input limits
         % u1 and u2 are defined in rad; round to int and below the physical
         % limit to protect the servo
-        umax = [ pi/3; pi/4; 1] ;
+        umax = [ pi/3; pi/2; 1] ;
         umin = [-pi/3; 0; 0] ;
         %%%%
         

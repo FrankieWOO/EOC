@@ -2,7 +2,7 @@
 %% load data
 % M * qddot + D_f * qdot = Tau
 format long
-
+clear all
 %robot_model = Maccepavd1dof();
 act = ActMccpvd();
 
@@ -35,7 +35,7 @@ end
 % data4.u1 = dataset4.(8);
 % data4.u2 = dataset4.(9);
 %%
-windowSize = 4; 
+windowSize = 2; 
 b = (1/windowSize)*ones(1,windowSize);
 a = 1;
 for i = 1:nfiles
@@ -54,7 +54,7 @@ data{i}.dt = 0.015;
 data{i}.qdot = diff(data{i}.q)/data{i}.dt;
 %data{i}.qdot = filter(b,a,data{i}.qdot);
 data{i}.qddot = diff(data{i}.qdot)/data{i}.dt;
-data{i}.qddot = filter(b,a,data{i}.qddot);
+%data{i}.qddot = filter(b,a,data{i}.qddot);
 data{i}.tau = act.torque_spring(data{i}.q,data{i}.theta1,data{i}.theta2);
 end
 

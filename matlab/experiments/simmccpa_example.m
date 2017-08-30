@@ -1,6 +1,6 @@
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 100;
+param_act.gear_d = 50;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -9,11 +9,12 @@ param_act.gear_d = 100;
 %param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-robot_param.inertia_l = 0.0016;
+robot_param=[];
+%robot_param.inertia_l = 0.0016;
 %robot_param.Df = 0.01;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
-target = pi/6;
+target = pi/5;
 T = 2;
 dt = 0.02;
 N = T/dt + 1;
@@ -97,7 +98,7 @@ u0 = [target; x0(4); 0];
 psim.dt = 0.02;
 psim.solver = 'rk4';
 
-result0.u = repmat([target; x0(4); 0],1,N-1);
+result0.u = repmat([target; 0.1; 0],1,N-1);
 result0.x = repmat(x0,1,N);
 for i = 1:N-1
     result0.k(i) = robot_model.stiffness( result0.x(:,i) );
