@@ -14,7 +14,7 @@ robot_param=[];
 %robot_param.Df = 0.01;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
-target = pi/5;
+target = pi/4;
 T = 2;
 dt = 0.02;
 N = T/dt + 1;
@@ -50,7 +50,7 @@ cost_param = [];
 cost_param.w_e = 1e-3;
 cost_param.w_t = 1e3;
 cost_param.w_tf = cost_param.w_t*dt;
-cost_param.w_r = 1e-3;
+cost_param.w_r = 1e-5;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 0;
 cost_param.T = T;
@@ -64,8 +64,8 @@ task1 = mccpvd1_reach(robot_model, cost_param);
 %cost_param2=cost_param;
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
-j1 = @(x,u,t)task1.j_effort_rege(x,u,t);
-%j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
+j1 = @(x,u,t)task1.j_effort(x,u,t);
+j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
 
 
 opt_param = [];
@@ -107,8 +107,7 @@ for i = 1:N-1
     result0.x(:,i+1) = simulate_step(f,result0.x(:,i),result0.u(:,i),psim);
     
 end
-
-%% dynamic braking & hybrid mode
+%% dynamic braking
 
 result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
 
@@ -119,9 +118,9 @@ for i = 1:N-1
 end
 
 %% pure regenerative braking
-u3_max = robot_model.actuator.u_max_regedamp;
+u3_maxrege = robot_model.actuator.u_max_regedamp;
 opt_param2 = opt_param;
-opt_param2.umax(3) = u3_max;
+opt_param2.umax(3) = u3_maxrege;
 result2 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param2);
 
 for i = 1:N-1
@@ -129,6 +128,18 @@ for i = 1:N-1
     result2.d(i) = robot_model.damping( result2.u(:,i));
     
 end
+%% %% hybrid mode
+opt_param3 = opt_param;
+opt_param3.umax(3) = 1;
+
+result3 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param3);
+
+for i = 1:N-1
+    result3.k(i) = robot_model.stiffness( result3.x(:,i));
+    result3.d(i) = robot_model.damping( result3.u(:,i));
+    
+end
+
 %%
 % result1 = ILQRController.ilqr(f, j1, dt, N, x0, result2.u, opt_param);
 % 
@@ -139,14 +150,14 @@ end
 % end
 
 %% fixed max rege power damping
-opt_param3 = opt_param;
-opt_param3.umax(3) = u3_max;
-opt_param3.umin(3) = u3_max;
-result3 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param3);
+opt_param4 = opt_param;
+opt_param4.umax(3) = u3_maxrege;
+opt_param4.umin(3) = u3_maxrege;
+result4 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param4);
 
 for i = 1:N-1
-    result3.k(i) = robot_model.stiffness( result3.x(:,i));
-    result3.d(i) = robot_model.damping( result3.u(:,i));
+    result4.k(i) = robot_model.stiffness( result4.x(:,i));
+    result4.d(i) = robot_model.damping( result4.u(:,i));
     
 end
 
@@ -163,6 +174,9 @@ result2.xsim = simulate_feedforward(x0,f,result2.usim,psim);
 result3.usim = scale_controlSeq(result3.u,t(1:end-1),tsim(1:end-1));
 result3.xsim = simulate_feedforward(x0,f,result3.usim,psim);
 
+result4.usim = scale_controlSeq(result4.u,t(1:end-1),tsim(1:end-1));
+result4.xsim = simulate_feedforward(x0,f,result4.usim,psim);
+
 result0.usim = scale_controlSeq(result0.u,t(1:end-1),tsim(1:end-1));
 result0.xsim = simulate_feedforward(x0,f,result0.usim,psim);
 
@@ -171,6 +185,7 @@ for i=1:length(tsim)-1
     result1.Prege(i) = robot_model.power_rege( result1.xsim(:,i),result1.usim(:,i));
     result2.Prege(i) = robot_model.power_rege( result2.xsim(:,i),result2.usim(:,i));
     result3.Prege(i) = robot_model.power_rege( result3.xsim(:,i),result3.usim(:,i));
+    result4.Prege(i) = robot_model.power_rege( result4.xsim(:,i),result4.usim(:,i));
 
 end
 
@@ -179,17 +194,21 @@ result0.Erege = sum(result0.Prege)*psim.dt;
 result1.Erege = sum(result1.Prege)*psim.dt;
 result2.Erege = sum(result2.Prege)*psim.dt;
 result3.Erege = sum(result3.Prege)*psim.dt;
+result4.Erege = sum(result4.Prege)*psim.dt;
 for i = 1:length(tsim)-1
     result0.Plink(i) = robot_model.power_link(result0.xsim(:,i), result0.usim(:,i));
     result1.Plink(i) = robot_model.power_link(result1.xsim(:,i), result1.usim(:,i));
     result2.Plink(i) = robot_model.power_link(result2.xsim(:,i), result2.usim(:,i));
     result3.Plink(i) = robot_model.power_link(result3.xsim(:,i), result3.usim(:,i));
+    result4.Plink(i) = robot_model.power_link(result4.xsim(:,i), result4.usim(:,i));
     
 end
 result0.E = sum(result0.Plink)*psim.dt;
 result1.E = sum(result1.Plink)*psim.dt;
 result2.E = sum(result2.Plink)*psim.dt;
 result3.E = sum(result3.Plink)*psim.dt;
+result4.E = sum(result4.Plink)*psim.dt;
+
 %%
 figure
 subplot(2,2,1)
@@ -199,10 +218,10 @@ hold on
 plot(t, result0.x(1,:),'--')
 %plot(t, ones(1,N)*target)
 plot(t, result1.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 3)
-plot(t, result1.x(1,:),'k-','LineWidth',1)
 plot(t, result2.x(1,:),'b-.','LineWidth',1)
-plot(t, result3.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
-legend('C.D.','dynamic', 'hybrid','regenerative','fixed damping')
+plot(t, result3.x(1,:),'k-','LineWidth',1)
+plot(t, result4.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+legend('C.D.','dynamic', 'regenerative','hybrid','fixed damping')
 hold off
 
 % equilibrium position
@@ -220,9 +239,9 @@ hold on
 
 plot(t(1:end-1), result0.k,'--')
 plot(t(1:end-1), result1.k,'-','Color', [1 0.6 0.6], 'LineWidth', 3)
-plot(t(1:end-1), result1.k,'k-','LineWidth',1)
 plot(t(1:end-1), result2.k,'b-.','LineWidth',1)
-plot(t(1:end-1), result3.k,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+plot(t(1:end-1), result3.k,'k-','LineWidth',1)
+plot(t(1:end-1), result4.k,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
 hold off
 % damping
@@ -231,16 +250,16 @@ hold on
 
 plot(t(1:end-1), result0.d,'--')
 plot(t(1:end-1), result1.d,'-','Color', [1 0.6 0.6], 'LineWidth', 3)
-plot(t(1:end-1), result1.d,'k-','LineWidth',1)
 plot(t(1:end-1), result2.d,'b-.','LineWidth',1)
-plot(t(1:end-1), result3.d,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+plot(t(1:end-1), result3.d,'k-','LineWidth',1)
+plot(t(1:end-1), result4.d,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
 
 subplot(2,2,4)
 hold on
 c = categorical({'C.D.','dynamic','regenerative','hybrid','fixed damp'});
-E = [result0.E, result1.E, result2.E, result1.E, result3.E];
-Erege = [result0.Erege, 0, result2.Erege, result1.Erege, result3.Erege];
+E = [result0.E, result1.E, result2.E, result3.E, result4.E];
+Erege = [result0.Erege, 0, result2.Erege, result3.Erege, result4.Erege];
 Enet = E - Erege;
 zeta = Erege./E;
 bar(c, E, 'FaceColor',[0.5 0 .5],'EdgeColor',[0.9 0 .9],'LineWidth',1.0)

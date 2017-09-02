@@ -30,7 +30,7 @@ classdef ActMccpvd
         motor_inertia = 4.6*10^(-6);
         Id = 0.00184
         gear_d = 20;
-        Kd = 0.0212;
+        Kd = 0.0212; %torque constant
         Rd = 21.2;
         ratio_load = 1;
         Rl

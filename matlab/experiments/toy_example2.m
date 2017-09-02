@@ -18,19 +18,19 @@ ptask.model = robot;
 ptask.w_t = 1000;
 ptask.w_e = 1;
 ptask.w_tf = 1000;
-ptask.w_r = 0.1;
+ptask.w_r = 0.01;
 ptask.dt = dt;
 task = pendulum1_reach(ptask);
 x0 = [0;0];
 f = @(x,u)robot.dynamics(x,u);
-j1 = @(x,u,t)task.j_fastreach(x,u,t);
+j1 = @(x,u,t)task.j_fastreach_rege(x,u,t);
 
 %% critical damped
 psim.dt = 0.02;
 psim.solver = 'rk4';
 
-result0.k = 100;
-result0.d = 2*sqrt(result0.k);
+result0.k = 160;
+result0.d = 2*sqrt(result0.k)-robot.b;
 result0.u = repmat( [target; result0.k/pact.max_stiffness; result0.d/pact.max_damping], 1, N-1 );
 result0.x = simulate_feedforward(x0,f,result0.u,psim);
 %% 1 dynamic braking & hybrid mode
@@ -116,7 +116,7 @@ zeta3 = E3/(sum(tau3.*result3.xsim(2,1:end-1))*psim.dt);
 E4 = 0; zeta4=0;
 %%
 figure
-subplot(3,2,1)
+subplot(2,2,1)
 plot(t, result0.x(1,:),'--')
 hold on
 %plot(t, ones(1,N)*target)
@@ -127,19 +127,19 @@ plot(t, result2.x(1,:),'b-.','LineWidth',1)
 plot(t, result3.x(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
 legend('C.D.','dynamic', 'hybrid','regenerative','fixed damping')
-subplot(3,2,2)
-hold on
-plot(t(1:end-1), result0.u(1,:),'--')
-plot(t(1:end-1), result1.u(1,:),'-','LineWidth',3,'Color', [1 0.6 0.6])
+% subplot(3,2,2)
+% hold on
+% plot(t(1:end-1), result0.u(1,:),'--')
+% plot(t(1:end-1), result1.u(1,:),'-','LineWidth',3,'Color', [1 0.6 0.6])
+% 
+% plot(t(1:end-1), result1.u(1,:),'k-','LineWidth',1)
+% plot(t(1:end-1), result2.u(1,:),'b-.','LineWidth',1)
+% plot(t(1:end-1), result3.u(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+% 
+% hold off
 
-plot(t(1:end-1), result1.u(1,:),'k-','LineWidth',1)
-plot(t(1:end-1), result2.u(1,:),'b-.','LineWidth',1)
-plot(t(1:end-1), result3.u(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
-hold off
-
-
-subplot(3,2,3)
+subplot(2,2,2)
 hold on
 plot(t(1:end-1), result0.u(2,:)*robot.actuator.max_stiffness,'--')
 plot(t(1:end-1), result1.u(2,:)*robot.actuator.max_stiffness,'-','LineWidth',3,'Color', [1 0.6 0.6])
@@ -149,7 +149,7 @@ plot(t(1:end-1), result2.u(2,:)*robot.actuator.max_stiffness,'b-.','LineWidth',1
 plot(t(1:end-1), result3.u(2,:)*robot.actuator.max_stiffness,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
 
-subplot(3,2,4)
+subplot(2,2,3)
 hold on
 plot(t(1:end-1), result0.u(3,:)*robot.actuator.max_damping,'--')
 plot(t(1:end-1), result1.u(3,:)*robot.actuator.max_damping,'-','LineWidth',3,'Color', [1 0.6 0.6])
@@ -159,13 +159,14 @@ plot(t(1:end-1), result2.u(3,:)*robot.actuator.max_damping,'b-.')
 plot(t(1:end-1), result3.u(3,:)*robot.actuator.max_damping,'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 hold off
 
-subplot(3,2,5)
+subplot(2,2,4)
 c = categorical({'C.D.','dynamic','regenerative','hybrid','fixed damp'});
 Y = [E0/zeta0,E1/zeta1,E2/zeta2,E1/zeta1,E3/zeta3];
 Erege = [E0,E4,E2,E1,E3];
+Enet = Y - Erege;
 hold on
 bar(c, Y, 'FaceColor',[0.5 0 .5],'EdgeColor',[0.9 0 .9],'LineWidth',1.5)
-bar(c, Erege, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.5)
+bar(c, Enet, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.5)
 hold off
 
 %%
