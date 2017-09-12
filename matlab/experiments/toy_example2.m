@@ -14,11 +14,12 @@ robot = Pendulum1(parm,pact);
 %%%% create task
 ptask = [];
 ptask.target = target;
+% 1000 1 1000 0.01
 ptask.model = robot;
-ptask.w_t = 1000;
+ptask.w_t = 500;
 ptask.w_e = 1;
-ptask.w_tf = 1000;
-ptask.w_r = 0.01;
+ptask.w_tf = 500;
+ptask.w_r = 0.02;
 ptask.dt = dt;
 task = pendulum1_reach(ptask);
 x0 = [0;0];

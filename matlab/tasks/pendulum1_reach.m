@@ -128,6 +128,14 @@ classdef pendulum1_reach
             p_rege = obj.model.power_rege(x,u);
             cost = c1*obj.w_t + ce*obj.w_e - p_rege*obj.w_r;
         end
+        function cost = costr_mech_rege(obj,x,u)
+            c1 = (x(1) - obj.target).^2;
+            %ce = (u(1)-x(3))^2 + (u(2)-x(4))^2;
+            %ce = (u(1) - obj.target)^2 + 0.5*u(2)^2 + 1e-6*u(3)^2;
+            ce = obj.model.
+            p_rege = obj.model.power_rege(x,u);
+            cost = c1*obj.w_t + ce*obj.w_e - p_rege*obj.w_r;
+        end
         function cost = costf(obj, x)
             cost = (x(1) - obj.target).^2 * obj.dt * obj.w_tf;
         end
