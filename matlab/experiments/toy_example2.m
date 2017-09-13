@@ -16,9 +16,9 @@ ptask = [];
 ptask.target = target;
 % 1000 1 1000 0.01
 ptask.model = robot;
-ptask.w_t = 500;
+ptask.w_t = 600;
 ptask.w_e = 1;
-ptask.w_tf = 500;
+ptask.w_tf = 600;
 ptask.w_r = 0.02;
 ptask.dt = dt;
 task = pendulum1_reach(ptask);
