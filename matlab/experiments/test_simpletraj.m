@@ -34,7 +34,7 @@ x0(5) = 0;
 % test simple traj
 
 p.dt = 0.02;
-p.solver='rk4';
+p.solver = 'rk4';
 Nu = 25;
 
 u = repmat([target;1;1],1,Nu);

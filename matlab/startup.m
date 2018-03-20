@@ -5,6 +5,7 @@
 %addpath(fullfile(pwd,'ros_package','matlab_gen','msggen'));
 %addpath('~/lwpr/matlab/');
 addpath('/home/fan/catkin_ws/src/matlab_gen/msggen');
+addpath('/home/fan/lwpr/matlab');
 curPath = pwd;
 addpath(genpath(pwd));
 clear curPath

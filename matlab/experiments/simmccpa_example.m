@@ -47,10 +47,10 @@ x0(4) = 0; % initial motor2
 cost_param = [];
 %cost_param.w0 = 1;
 
-cost_param.w_e = 1e-3;
+cost_param.w_e = 1e-4;
 cost_param.w_t = 1e3;
 cost_param.w_tf = cost_param.w_t*dt;
-cost_param.w_r = 5e-5;
+cost_param.w_r = 1e-6;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 0;
 cost_param.T = T;
