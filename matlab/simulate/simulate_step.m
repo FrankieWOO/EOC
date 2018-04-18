@@ -21,17 +21,17 @@ switch p.solver
 		xn = x + dt*f(x,u); % euler step
 	case 'rk4'
 		dt = p.dt;
-        g = cell(1,4);
-		g{1} = dt*f(x            ,u);
-		g{2} = dt*f(x+.5*g{1},u);
-		g{3} = dt*f(x+.5*g{2},u);
-		g{4} = dt*f(x+   g{3},u);
-		xn = x + (1/6)*(g{1} + 2*g{2} + 2*g{3} + g{4});
+        
+		g1 = dt*f(x            ,u);
+		g2 = dt*f(x+.5*g1,u);
+		g3 = dt*f(x+.5*g2,u);
+		g4 = dt*f(x+   g3,u);
+		xn = x + (1/6)*(g1 + 2*g2 + 2*g3 + g4);
     case 'ode45'
         tspan = [0 p.dt];
-        odefun = @(t,x)f(x,u);
+        odefun = @(t,y)f(y,u);
         [~,y] = ode45(odefun,tspan,x);
-        xn = y(:,end);
+        xn = y(end,:)';
 	otherwise
 		error('Unknown solver.')
 end

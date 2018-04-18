@@ -13,7 +13,7 @@ function [ uraw ] = convert_cmd_to_raw( u )
             uraw(3,i) = round(u(3,i)*255/0.5) ;
             uraw(4,i) = 0;
         else
-            uraw(3,i) = 0;
+            uraw(3,i) = 255;
             uraw(4,i) = round((u(3,i)-0.5)*255/0.5);
         end
         uraw(:,i) = max( min( uraw(:,i), umax ), umin); %limit the commands for safety

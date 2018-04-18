@@ -10,6 +10,8 @@ function [ y ] = exetraj( u )
         ssrdata = receive(mccssr,1);
         y(1,j) = ssrdata.JointPosition;
         y(2,j) = ssrdata.RegeCurrent;
+        %y(1,j) = ssrdata.JointSensor;
+        %y(2,j) = ssrdata.RegeCurrent;
     
         cmdmsg.U1 = uraw(1,j);
         cmdmsg.U2 = uraw(2,j);

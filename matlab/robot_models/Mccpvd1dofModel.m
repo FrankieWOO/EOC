@@ -54,12 +54,12 @@ classdef Mccpvd1dofModel
         %%%% dynamical properties
         % Fan: estimated by data  %calculated inertia: 0.00135
         % 
-        inertia = 0.0015
-        inertia_l %= 0.0015
+        inertia = 0.00315
+        inertia_l = 0.00135
         % frictions
         % viscous friction
         % Fan: 0.0022 estimated by data;
-        Df = 0.0023
+        Df = 0.0062
         % coulomb friction
         coulomb_friction = 0;
         % gravity constant
@@ -113,19 +113,23 @@ classdef Mccpvd1dofModel
             %variable damping range
             % 110255 : 0.00848
 %             damping_range = [0, 0.00848];
-
-            if nargin > 0
-                param = varargin{1};
-                if isfield(param,'inertia_l'), model.inertia_l = param.inertia_l; end
-                if isfield(param,'Df'), model.Df = param.Df; end
-                if isfield(param,'has_gravity'), model.gravity_constant = 9.8; end
-                %if isfield(param,'gear'), obj.gear_d = param.gear_d ; end
-            end
             if nargin >= 2
                 model.actuator = ActMccpvd(varargin{2});
             else
                 model.actuator = ActMccpvd();
             end
+            if nargin > 0
+                param = varargin{1};
+                if isfield(param,'inertia_l')
+                    model.inertia_l = param.inertia_l; 
+                    model.inertia = model.inertia_l + model.actuator.Id;
+                end
+                if isfield(param,'inertia'), model.inertia = param.inertia; end
+                if isfield(param,'Df'), model.Df = param.Df; end
+                if isfield(param,'has_gravity'), model.gravity_constant = 9.8; end
+                %if isfield(param,'gear'), obj.gear_d = param.gear_d ; end
+            end
+            
             %model.inertia = model.inertia_l + model.actuator.Id;
             model.mass = model.link_mass + model.servo1_mass;
             
@@ -161,34 +165,7 @@ classdef Mccpvd1dofModel
             
             xdot  = [xdot1;
                     xdot2];
-            % current motor positions
-            %m     = [x(3);x(6)] ; 
-            %if nargout > 1
-            % Compute xdot_x, xdot_u using finite differences
-                %delta = 1e-6;
-                %dimX = size(x,1);
-                %dimU = size(u,1);
-    
-            % Compute derivative of acceleration w.r.t. x
-%                 daccdx = zeros(1,model.dimX);
-%                 f = @(x)get_acceleration_maccepa(x(1:2),[m;u(3)],model);
-%                 daccdx(:,1:2)=get_jacobian_fd(f,x(1:2));
-%                 f = @(m)get_acceleration_maccepa(x(1:2),[m;u(3)],model);
-%                 daccdx(:,[3;6])=get_jacobian_fd(f,m);
-%     
-%                 % Compute derivative of acceleration w.r.t. u
-%                 daccdu = zeros(1,model.dimU);
-%                 f = @(u3)get_acceleration_maccepa(x(1:2),[m;u3],model);
-%                 daccdu(3)=get_jacobian_fd(f,u(3));
-% 
-%                 xdot_x = [0, 1, zeros(1,6);...
-%                             daccdx          ;...
-%                             zeros(6,2), xdot_x2];
-%           
-%                 xdot_u = [zeros(1,3);...
-%                         daccdu; 
-%                         xdot_u2,zeros(6,1)];
-%             end
+
         end
         
         function [xdot, xdot_x, xdot_u]= dynamics_with_jacobian_fd(model, x, u)

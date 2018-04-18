@@ -1,10 +1,11 @@
-function [ Y ] = exetrajs( U )
+function [ Y ] = exetrajs( U, varargin )
 %EXETRAJS execute multiple trajectories
 %   input:  U - cell array of commands
 %   output: Y - cell array of recorsd
     %global rate
     Y = cell(size(U));
     global pubcmd cmdmsg
+    
 for i=1:size(U,1)
     u = U{i,1};
     %uraw = convert_cmd_to_raw(u);

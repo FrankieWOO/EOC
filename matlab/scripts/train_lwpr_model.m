@@ -1,5 +1,5 @@
 %% train lwpr model to predict x_t+1 according to (x_t, u_t)
-
+% discrete transition model
 %% prepare data
 %   state: q, qdot, theta1, theta2, theta1dot, theta2dot; action: u1, u2, u3
 
@@ -41,6 +41,7 @@ end
 
 
 %% initialize LWPR
+% the model assumed here is discrete transition model.
 model = lwpr_init(5,1,'name','dynamics_mccpvd');
 model = lwpr_set(model,'update_D',0);
 model = lwpr_set(model,'init_D',eye(5)*10);
@@ -101,7 +102,12 @@ for i_test=1:length(Yp)
     Yp{i_test} = yp;
 end
 
-
+figure
+hold on
+plot(ytest(1,:))
+plot(yp(1,:))
+hold off
+legend('test traj','prediction')
 
 %% create predictions for the test data
 Yp = zeros(size(Ytest));
