@@ -73,3 +73,5 @@ xn60 = mean(x);
 
 servo1_weight = 2*pi/3/(xp60-xn60);
 servo1_offset = -servo1_weight*x0;
+%%
+

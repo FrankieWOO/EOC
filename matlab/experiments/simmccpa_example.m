@@ -1,6 +1,6 @@
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 20;
+param_act.gear_d = 40;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -11,7 +11,7 @@ param_act.gear_d = 20;
 %param_act.J2 = 0.001;
 robot_param=[];
 robot_param.inertia_l = 0.0015;
-robot_param.Df = 0.005;
+robot_param.Df = 0.004;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
 target = pi/4;
@@ -50,9 +50,9 @@ cost_param = [];
 cost_param.w_e = 1e-4;
 cost_param.w_t = 1e3;
 cost_param.w_tf = cost_param.w_t*dt;
-cost_param.w_r = 1e-6;
+cost_param.w_r = 1e-5;
 %cost_param.alpha = alpha;
-cost_param.epsilon = 1e-8;
+cost_param.epsilon = 1e-6;
 cost_param.T = T;
 cost_param.dt = dt;
 cost_param.target = target;
@@ -130,7 +130,7 @@ for i = 1:N-1
 end
 %% %% hybrid mode
 opt_param3 = opt_param;
-opt_param3.umax(3) = 1;
+opt_param3.umax(3) = 0.75;
 
 result3 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param3);
 
@@ -273,4 +273,25 @@ hold off
 % end
 % figure 
 % plot(dd, pp)
+figure
+subplot(3,1,1)
+plot(t(1:end-1), result0.u(1,:),'--')
+plot(t(1:end-1), result1.u(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 3)
+plot(t(1:end-1), result2.u(1,:),'b-.','LineWidth',1)
+plot(t(1:end-1), result3.u(1,:),'k-','LineWidth',1)
+plot(t(1:end-1), result4.u(1,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+
+subplot(3,1,2)
+plot(t(1:end-1), result0.u(2,:),'--')
+plot(t(1:end-1), result1.u(2,:),'-','Color', [1 0.6 0.6], 'LineWidth', 3)
+plot(t(1:end-1), result2.u(2,:),'b-.','LineWidth',1)
+plot(t(1:end-1), result3.u(2,:),'k-','LineWidth',1)
+plot(t(1:end-1), result4.u(2,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
+
+subplot(3,1,3)
+plot(t(1:end-1), result0.u(3,:),'--')
+plot(t(1:end-1), result1.u(3,:),'-','Color', [1 0.6 0.6], 'LineWidth', 3)
+plot(t(1:end-1), result2.u(3,:),'b-.','LineWidth',1)
+plot(t(1:end-1), result3.u(3,:),'k-','LineWidth',1)
+plot(t(1:end-1), result4.u(3,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 

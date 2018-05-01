@@ -1,7 +1,7 @@
 %%%% specify the robot model
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 20;
+param_act.gear_d = 40;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -13,8 +13,8 @@ param_act.gear_d = 20;
 robot_param=[];
 %robot_param.inertia = 0.00315;
 %robot_param.Df = 0.0062; %seems 0.0023 is too small for swing from 0.
-robot_param.inertia = 0.0015;
-robot_param.Df = 0.004; 
+robot_param.inertia = 0.0006; %0.0015;
+robot_param.Df = 0.0104; %0.004; 
 
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 %dynfn = @(x,u)robot_model.dynamics(x,u);
@@ -28,8 +28,8 @@ N_u = N_t-1;
 t = 0:dt:T;
 %%%% specify the initial state and target
 position0 = 0;
-motor2 = 1;
-qtarget = 0.8;
+motor2 = pi/3;
+qtarget = pi/4;
 
 x0 = zeros(6,1); 
 x0(1) = position0;
@@ -37,7 +37,7 @@ x0(3) = position0; % initial motor1
 x0(4) = motor2; % initial motor2
 %%%%
 reset0 = repmat( [0;0;0],1, N_u);
-reset_traj_h = repmat([position0; 0.7; 0], 1, N_u);
+reset_traj_h = repmat([position0; pi/2; 0], 1, N_u);
 reset_traj = repmat([position0; motor2; 0], 1, N_u);
 reset_traj = [reset_traj_h, reset_traj];
 
@@ -52,7 +52,7 @@ U{2} = middamp;
 U{3} = highdamp;
 %U{4} = zero_traj;
 
-%% execute trajs
+ %% execute trajs
 Y = cell(N_trajs,1);
 for i=1:N_trajs
 
@@ -76,7 +76,7 @@ Ypred = cell(N_trajs,1);
 for i=1:N_trajs
 Ypred{i} = predict_traj(robot_model, x0, U{i}, t);
 end
-%%
+%% plot records
 figure
 title('recorded')
 subplot(2,1,1)
@@ -97,7 +97,7 @@ end
 title('rege power')
 legend('0','0.5','1')
 hold off
-%%
+%% plot prediction
 figure
 title('prediction')
 subplot(2,1,1)
@@ -106,7 +106,7 @@ for i=1:N_trajs
     plot(t, Ypred{i}(1,:) )
 end
 title('position')
-legend('1','2','3','4','5')
+legend('0','0.5','1')
 hold off
 
 
@@ -116,23 +116,47 @@ for i=1:N_trajs
     plot(t, Ypred{i}(end,:) )
 end
 title('rege power')
-legend('1','2','3','4','5')
+legend('0','0.5','1')
 hold off
 
-%%
+
+%% plot records
 figure
-subplot(2,1,1)
+subplot(2,2,1)
 hold on
-plot(t,ypred(1,:))
-plot(t,y(1,:))
-legend('prediction','recorded')
+for i=1:N_trajs
+    plot(t, Y{i}(1,:) )
+end
 title('position')
+legend('0','0.5','1')
 hold off
 
-subplot(2,1,2)
+
+subplot(2,2,3)
 hold on
-plot(t, ypred(7,:))
-plot(t, y_rp)
-legend('prediction','recorded')
+for i=1:N_trajs
+    plot(t, Y{i}(2,:) )
+end
 title('rege power')
+legend('0','0.5','1')
+hold off
+
+
+subplot(2,2,2)
+hold on
+for i=1:N_trajs
+    plot(t, Ypred{i}(1,:) )
+end
+title('position')
+legend('0','0.5','1')
+hold off
+
+
+subplot(2,2,4)
+hold on
+for i=1:N_trajs
+    plot(t, Ypred{i}(end,:) )
+end
+title('rege power')
+legend('0','0.5','1')
 hold off
