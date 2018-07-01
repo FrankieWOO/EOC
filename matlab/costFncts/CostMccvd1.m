@@ -22,7 +22,6 @@ classdef CostMccvd1 < CostFunction
             %   u : command input
             %   t : time
             %   p : parameters
-            %   by Fan WU 29 Jun 2016. fan.wu@kcl.ac.uk
             
             
             fl = @(x,u,t) CostMccvd1.l_reach_netmech(robot_model,x,u,t,p);
@@ -71,6 +70,10 @@ classdef CostMccvd1 < CostFunction
                 if(~isfield(p,'w0')), w0 = 1;else, w0=p.w0; end
                 c =  c1*w0 + sum(u.^2,1) * p.epsilon + power*p.w;
             end
+            
+        end
+        
+        function [ c ] = reaching_cost(x, u, t, p)
             
         end
         

@@ -40,7 +40,7 @@ Yn= D.Yn;
  dimU    = size(U,1);           % get u dimensionality
 
 % initialise matrices
-Un = zeros(dimU,N);
+% Un = zeros(dimU,N);
 
 % initialise policy
 pi = pi0;
@@ -77,7 +77,7 @@ for iter=1:iter_max
 	if iter>1 
 		% find change in theta
 		dtheta = norm(model.w(:)-modelp.w(:));
-		if dtheta<dtheta_converge,
+		if dtheta<dtheta_converge
 			fprintf('Minimum parameter change threshold reached. '); break; % parameter change too small: EXIT
 		end
 	end
@@ -95,7 +95,7 @@ if iter==iter_max
 	fprintf('Max. number of iterations reached. ');
 end
 % print final result if necessary
-if online_printing==2,
+if online_printing==2
     fprintf('Iterations = %d; ', iter);
 end
 fprintf('\n');

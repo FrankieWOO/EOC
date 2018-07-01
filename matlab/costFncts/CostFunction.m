@@ -76,15 +76,7 @@ classdef CostFunction
         function cost = squared_distance( x,target)
             cost = (x - target).^2;
         end
-        function cost = l_error_1dof(x,target)
-            cost = OptTask.squared_distance( x(1), target );
-        end
-        function cost = l_error_2dof(x,target)
-            cost = OptTask.squared_distance( x([1,3]), target);
-        end
-        function cost = l_error_3dof(x,target)
-            cost = OptTask.squared_distance( x([1,3,5]), target);
-        end
+
         function cost = control_effort(u)
             cost = sum(u.^2);
         end

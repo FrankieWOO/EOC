@@ -161,7 +161,7 @@ classdef Mccpvd1dofModel
             xdot1 = [qdot; qddot] ;
 
             % motor dynamics
-            xdot2 = model.motor_dynamics_2nd(x(3:end),u(1:2));
+            xdot2 = model.motor_dynamics_2nd(x(3:end,:),u(1:2,:));
             
             xdot  = [xdot1;
                     xdot2];
@@ -215,7 +215,7 @@ classdef Mccpvd1dofModel
         end
         
         function acc = cmptAcc(model,x,u)
-           acc = model.torque_total(x,u)/model.inertia;
+           acc = model.torque_total(x,u)./model.inertia;
         end
         %%%% dynamics %%%%
         
@@ -257,8 +257,8 @@ classdef Mccpvd1dofModel
         end
         % Torque including friction, gravity
         function torque_total = torque_total(model,x,u)
-            torque_total = model.actuator.torque(x(1),x(2),x(3),x(4),u(3))...
-                - model.Df*x(2) - sin(model.mass*model.gravity_constant)*model.com;
+            torque_total = model.actuator.torque(x(1,:),x(2,:),x(3,:),x(4,:),u(3,:))...
+                - model.Df.*x(2,:) - sin(model.mass*model.gravity_constant)*model.com;
         end
         %%%%---- torques ----%%%%
         
@@ -382,7 +382,7 @@ classdef Mccpvd1dofModel
         function [ xdot, xdot_x, xdot_u ] = motor_dynamics_2nd(model, x, u)
             p = model.alpha_servo;
             tau_l1 = model.torque_spring(x)/model.actuator.gear;
-            tau_l2 = model.actuator.torque_load2(x(1),x(3),x(4));
+            tau_l2 = model.actuator.torque_load2(x(1,:),x(3,:),x(4,:));
             A = [ 0, 0, 1, 0;
                 0, 0, 0, 1;
                 -p^2, 0, -2*p, 0;

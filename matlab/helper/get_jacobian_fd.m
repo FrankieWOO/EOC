@@ -16,7 +16,8 @@
 function J = get_jacobian_fd ( f, x )
 
 delta=1e-6;
-J = zeros(size(x));
+y = f(x);
+J = zeros(length(y),length(x));
 for i=1:length(x)
 	dx = zeros(size(x)); dx(i) = delta;
     try 
@@ -30,11 +31,11 @@ for i=1:length(x)
         ym = NaN;
     end
     if isnan(yp)
-        J(i) = -ym/delta;
+        J(:,i) = -ym/delta;
     elseif isnan(ym)
-        J(i) = yp/delta;
+        J(:,i) = yp/delta;
     else
-        J(i) = ((yp - ym)/(2*delta));
+        J(:,i) = ((yp - ym)/(2*delta));
     end
     
 end

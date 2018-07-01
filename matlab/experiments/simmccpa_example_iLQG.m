@@ -1,3 +1,4 @@
+%function simmccpa_example_iLQG
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
 param_act.gear_d = 40;
@@ -22,7 +23,7 @@ t = 0:dt:T;
 %alpha = 0.7;
 position0 = 0;
 x0 = zeros(6,1); 
-x0(1) = position0;
+x0(1) = 0;
 x0(3) = 0; % initial motor1
 x0(4) = 0; % initial motor2
 
@@ -59,15 +60,29 @@ cost_param.target = target;
 cost_param.fd = 1; % use finite difference or not
 cost_param.x0 = x0;
 
-f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
+% robot dynamics
+f = @(x,u)robot_model.dynamics(x,u);
+%disdyn = @(x,u)discrete_dynamics(f,x,u);
 task1 = mccpvd1_reach(robot_model, cost_param);
+
+% cost functions
 %cost_param2=cost_param;
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
 j1 = @(x,u,t)task1.j_effort(x,u,t);
 j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
+%disj1 = @(x, u, t) discrete_cost(j1, x, u, t);
+%disj2 = @(x, u, t) discrete_cost(j2, x, u, t);
 
-
+dyncst1 =@(x, u, i) dyna_cost(f, j1, x, u, i);
+dyncst2 = @(x, u, i)dyna_cost(f, j2, x, u, i);
+% control limits
+Op.lims = [robot_model.umin, robot_model.umax];
+%Op.lambda = 0.01;
+%Op.dlambda = 0.01;
+%Op.lambdaMax = 1e20;
+%Op.lambdaFactor = 1.2;
+%full_DDP = false;
 opt_param = [];
 opt_param.umax = robot_model.umax; 
 opt_param.umin = robot_model.umin;
@@ -91,7 +106,8 @@ opt_param.T = T;
 % u0 can be full command sequence or just initial point
 %u0 = result0.u;
 u0 = [target; x0(4); 0];
-
+%u0 = [0.5;0.1;0.2];
+u0 = repmat(u0, 1, N-1);
 
 
 %% critical damped
@@ -109,8 +125,8 @@ for i = 1:N-1
 end
 %% dynamic braking
 
-result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
-
+%result1 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param);
+result1 = iLQG_wrapper(dyncst1, x0, u0, Op);
 for i = 1:N-1
     result1.k(i) = robot_model.stiffness( result1.x(:,i));
     result1.d(i) = robot_model.damping( result1.u(:,i));
@@ -121,8 +137,9 @@ end
 u3_maxrege = robot_model.actuator.u_max_regedamp;
 opt_param2 = opt_param;
 opt_param2.umax(3) = u3_maxrege;
-result2 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param2);
-
+Op.lims = [opt_param2.umin, opt_param2.umax];
+%result2 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param2);
+result2 = iLQG_wrapper(dyncst1, x0, u0, Op);
 for i = 1:N-1
     result2.k(i) = robot_model.stiffness( result2.x(:,i));
     result2.d(i) = robot_model.damping( result2.u(:,i));
@@ -131,9 +148,9 @@ end
 %% %% hybrid mode
 opt_param3 = opt_param;
 opt_param3.umax(3) = 0.75;
-
-result3 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param3);
-
+Op.lims = [opt_param3.umin, opt_param3.umax];
+%result3 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param3);
+result3 = iLQG_wrapper(dyncst2, x0, u0, Op);
 for i = 1:N-1
     result3.k(i) = robot_model.stiffness( result3.x(:,i));
     result3.d(i) = robot_model.damping( result3.u(:,i));
@@ -153,8 +170,10 @@ end
 opt_param4 = opt_param;
 opt_param4.umax(3) = u3_maxrege;
 opt_param4.umin(3) = u3_maxrege;
-result4 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param4);
 
+Op.lims = [opt_param4.umin, opt_param4.umax];
+%result4 = ILQRController.ilqr(f, j1, dt, N, x0, u0, opt_param4);
+result4 = iLQG_wrapper(dyncst1, x0, u0, Op);
 for i = 1:N-1
     result4.k(i) = robot_model.stiffness( result4.x(:,i));
     result4.d(i) = robot_model.damping( result4.u(:,i));
@@ -295,3 +314,113 @@ plot(t(1:end-1), result2.u(3,:),'b-.','LineWidth',1)
 plot(t(1:end-1), result3.u(3,:),'k-','LineWidth',1)
 plot(t(1:end-1), result4.u(3,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
+
+function [f,c,fx,fu,fxx,fxu,fuu,cx,cu,cxx,cxu,cuu] = dyna_cost(dyn, cst, x, u, i)
+% combine dynamics and cost functions
+% dyn, cst: function handlers
+dt = 0.02;
+disdyn = @(x,u)discrete_dynamics(dyn, x, u);
+if nargout == 2 
+    f = disdyn(x, u);
+    c = cst(x, u, i)*dt;
+else
+    [dimx, N] = size(x);
+    dimu = size(u,1);
+    cx = zeros(dimx,N);
+    cxx= zeros(dimx,dimx,N);
+    cu = zeros(dimu,N);
+    cuu= zeros(dimu,dimu,N);
+    cxu= zeros(dimx,dimu,N);
+    fx = zeros(dimx,dimx,N);
+    fu = zeros(dimx,dimu,N);
+    for n = 1:N-1
+        % linearize dynamics, adjust for dt
+        %[ff, f_x, f_u] = f(x(:,n), u(:,n));
+        xu = [x(:,n);u(:,n)];
+        ff = @(xu)disdyn(xu(1:dimx),xu(dimx+1:end));
+        J = get_jacobian_fd(ff,xu);
+        fx(:,:,n) = J(:,1:dimx);
+        fu(:,:,n) = J(:,dimx+1:end);
+        
+
+        % quadratize cost, adjust for dt
+        [~,l_x,l_xx,l_u,l_uu,l_ux] = cst(x(:,n), u(:,n), i);
+        %q0(    n) = dt*l0;
+        cx (  :,n) = dt*l_x;
+        cxx (:,:,n) = dt*l_xx;
+        cu (  :,n) = dt*l_u;
+        cuu (:,:,n) = dt*l_uu;
+        cxu (:,:,n) = dt*l_ux';
+        
+    end
+    
+    [~,cx(:,N),cxx(:,:,N)] = cst(x(:,N), NaN, i);
+    fx(:,:,N) = NaN(dimx,dimx);
+    fu(:,:,N) = NaN(dimx,dimu);
+    [fxx,fxu,fuu] = deal([]);
+
+    
+    
+    [f,c] = deal([]);
+end
+end
+function [result] = iLQG_wrapper(DYNCST, x0, u0, Op)
+[x, u, L, Vx, Vxx, cost, trace, stop] = iLQG(DYNCST, x0, u0, Op);
+result.x = x;
+result.u = u;
+result.L = L;
+result.Vx = Vx;
+result.Vxx = Vxx;
+result.cost = cost;
+result.trace = trace;
+result.stop = stop;
+end
+function J = finite_difference(fun, x, h)
+% simple finite-difference derivatives
+% assumes the function fun() is vectorized
+
+if nargin < 3
+    h = 2^-17;
+end
+
+[n, K]  = size(x);
+H       = [zeros(n,1) h*eye(n)];
+H       = permute(H, [1 3 2]);
+X       = pp(x, H);
+X       = reshape(X, n, K*(n+1));
+Y       = fun(X);
+m       = numel(Y)/(K*(n+1));
+Y       = reshape(Y, m, K, n+1);
+J       = pp(Y(:,:,2:end), -Y(:,:,1)) / h;
+J       = permute(J, [1 3 2]);
+end
+function c = pp(a,b)
+c = bsxfun(@plus,a,b);
+end
+
+function c = tt(a,b)
+c = bsxfun(@times,a,b);
+end
+
+function xnew = discrete_dynamics(f, x, u)
+psim.dt = 0.02;
+psim.solver='rk4';
+xnew = simulate_step(f, x, u, psim);
+end
+
+function c = discrete_cost(l, x, u, i)
+
+cc = l(x, u, i*0.02);
+if isnan(u)
+    c = cc;
+else
+    c=cc*0.02;
+end
+
+end
+
+function c = reaching_cost(x, u)
+final = isnan(u(1,:));
+u(:,final)  = 0;
+c = (pi/4 - x).^2 + u.^2;
+end
