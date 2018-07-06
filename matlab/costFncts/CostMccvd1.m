@@ -1,6 +1,8 @@
 classdef CostMccvd1 < CostFunction
     %COSTMCCVD1 Summary of this class goes here
     %   Detailed explanation goes here
+    %   unused now
+    %   to-do
     
     properties
         

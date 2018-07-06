@@ -4,12 +4,10 @@ simmccpa_example
 cmds = {result0.u;result1.u;result2.u;result3.u;result4.u};
 
 %%
-rosinit
-rate = rosrate(50);
-rate.OverrunAction = 'slip';
-
-[pubcmd, cmdmsg] = rospublisher('/command_raw','maccepavd/CommandRaw');
-mccssr = rossubscriber('/sensors');
+if ~exist('pubcmd','var')
+    init_ros
+    
+end
 
 %%
 records = cell(size(cmds));
@@ -57,7 +55,7 @@ for k=1:size(records,1)
 end
 hold off
 title('Joint position')
-legend('C.D.','dynamic', 'regenerative','hybrid','fixed damping')
+%legend('C.D.','dynamic', 'regenerative','hybrid','fixed damping')
 
 subplot(2,1,2)
 hold on
@@ -67,7 +65,7 @@ for k=1:size(records,1)
 end
 hold off
 title('Rege. Current')
-legend('C.D.','dynamic', 'regenerative','hybrid','fixed damping')
+%legend('C.D.','dynamic', 'regenerative','hybrid','fixed damping')
 
 %%
 Erege_record = zeros(5,1);

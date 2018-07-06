@@ -3,7 +3,7 @@
 
 %param_act.ratio_load = 0;
 param_act.ratio_load = 1;
-param_act.gear_d = 20;
+param_act.gear_d = 40;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
 %param_act.K2 = 1;
@@ -12,15 +12,15 @@ param_act.gear_d = 20;
 %param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-robot_param.inertia_l = 0.0016;
-%robot_param.Df = 0.01;
+robot_param.inertia_l = 0.0015;
+robot_param.Df = 0.004;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
 
 %%%% step 2: define task
 %---- user specification ----%
-target = 0.7;
-T = 1.5;
+target = pi/4;
+T = 2;
 dt = 0.02;
 N = T/dt + 1;
 %alpha = 0.7;

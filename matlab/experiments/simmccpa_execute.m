@@ -1,20 +1,26 @@
 
 U = {result0.u; result1.u; result2.u; result3.u; result4.u};
+
+
+
+%% execute trajs
+if ~exist('pubcmd','var')
+    init_ros
+    
+end
+%reset0 = repmat( [0;0;0],1, N_u);
+%reset_traj_h = repmat([0; pi/2; 0], 1, N_u);
+%reset_traj = repmat([0; 0; 0], 1, N_u);
+%reset_traj = [reset_traj_h, reset_traj];
+reset_traj = repmat([0;0;0],1,100);
+ 
 N_trajs = length(U);
 Y = cell(N_trajs,1);
-
-reset0 = repmat( [0;0;0],1, N_u);
-reset_traj_h = repmat([0; pi/2; 0], 1, N_u);
-reset_traj = repmat([0; 0; 0], 1, N_u);
-reset_traj = [reset_traj_h, reset_traj];
-
- %% execute trajs
- 
 for i=1:N_trajs
 
 u = U{i};
 y = exetraj(u);
-y_rp = (y(2,:)/1000).^2 * 25;
+y_rp = (y(2,:)/1000).^2 * 25.3;
 y(2,:) = y_rp;
 Y{i} = y;
     
@@ -37,7 +43,7 @@ for i=1:N_trajs
     plot(t, Y{i}(1,:) )
 end
 title('position')
-legend('1','2','3','4','5')
+%legend('1','2','3','4','5')
 hold off
 
 
@@ -47,7 +53,7 @@ for i=1:N_trajs
     plot(t, Y{i}(2,:) )
 end
 title('rege power')
-legend('1','2','3','4','5')
+%legend('1','2','3','4','5')
 hold off
 %% plot comparison
 Erec1 = sum(Y{1}(2,:))*0.02;
@@ -107,6 +113,8 @@ hold off
 % damping
 subplot(2,2,4)
 hold on
-bar(c, Erec)
+Enetrec = E - Erec;
+bar(c, E, 'FaceColor',[0.5 0 .5],'EdgeColor',[0.9 0 .9],'LineWidth',1.0)
+bar(c, Enetrec, 'FaceColor',[0 .5 .5],'EdgeColor',[0 .9 .9],'LineWidth',1.0)
 hold off
 

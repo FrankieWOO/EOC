@@ -245,6 +245,11 @@ classdef Mccpvd1dofModel
             
             torque = model.actuator.torque_spring(x(1),x(3),x(4));
         end
+        
+        function force = spring_force(model, x, ~)
+            
+            force = model.actuator.spring_force(x(1), x(3), x(4));
+        end
         % Variable Damping torque
         function torque_damp = torque_damping(model,x,u)
             % note size(x,2) == size(u,2)

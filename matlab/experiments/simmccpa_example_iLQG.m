@@ -315,55 +315,6 @@ plot(t(1:end-1), result3.u(3,:),'k-','LineWidth',1)
 plot(t(1:end-1), result4.u(3,:),'-','Color', [1 0.6 0.6], 'LineWidth', 1.5)
 
 
-function [f,c,fx,fu,fxx,fxu,fuu,cx,cu,cxx,cxu,cuu] = dyna_cost(dyn, cst, x, u, i)
-% combine dynamics and cost functions
-% dyn, cst: function handlers
-dt = 0.02;
-disdyn = @(x,u)discrete_dynamics(dyn, x, u);
-if nargout == 2 
-    f = disdyn(x, u);
-    c = cst(x, u, i)*dt;
-else
-    [dimx, N] = size(x);
-    dimu = size(u,1);
-    cx = zeros(dimx,N);
-    cxx= zeros(dimx,dimx,N);
-    cu = zeros(dimu,N);
-    cuu= zeros(dimu,dimu,N);
-    cxu= zeros(dimx,dimu,N);
-    fx = zeros(dimx,dimx,N);
-    fu = zeros(dimx,dimu,N);
-    for n = 1:N-1
-        % linearize dynamics, adjust for dt
-        %[ff, f_x, f_u] = f(x(:,n), u(:,n));
-        xu = [x(:,n);u(:,n)];
-        ff = @(xu)disdyn(xu(1:dimx),xu(dimx+1:end));
-        J = get_jacobian_fd(ff,xu);
-        fx(:,:,n) = J(:,1:dimx);
-        fu(:,:,n) = J(:,dimx+1:end);
-        
-
-        % quadratize cost, adjust for dt
-        [~,l_x,l_xx,l_u,l_uu,l_ux] = cst(x(:,n), u(:,n), i);
-        %q0(    n) = dt*l0;
-        cx (  :,n) = dt*l_x;
-        cxx (:,:,n) = dt*l_xx;
-        cu (  :,n) = dt*l_u;
-        cuu (:,:,n) = dt*l_uu;
-        cxu (:,:,n) = dt*l_ux';
-        
-    end
-    
-    [~,cx(:,N),cxx(:,:,N)] = cst(x(:,N), NaN, i);
-    fx(:,:,N) = NaN(dimx,dimx);
-    fu(:,:,N) = NaN(dimx,dimu);
-    [fxx,fxu,fuu] = deal([]);
-
-    
-    
-    [f,c] = deal([]);
-end
-end
 function [result] = iLQG_wrapper(DYNCST, x0, u0, Op)
 [x, u, L, Vx, Vxx, cost, trace, stop] = iLQG(DYNCST, x0, u0, Op);
 result.x = x;
@@ -402,11 +353,7 @@ function c = tt(a,b)
 c = bsxfun(@times,a,b);
 end
 
-function xnew = discrete_dynamics(f, x, u)
-psim.dt = 0.02;
-psim.solver='rk4';
-xnew = simulate_step(f, x, u, psim);
-end
+
 
 function c = discrete_cost(l, x, u, i)
 

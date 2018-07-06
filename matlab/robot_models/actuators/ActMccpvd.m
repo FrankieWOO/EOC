@@ -32,8 +32,9 @@ classdef ActMccpvd
         gear_d = 20;
         Kd = 0.0212; %torque constant
         Rd = 21.2;
-        ratio_load = 1;
-        Rl
+        Rl = 25.3;
+        
+        ratio_load = 21.2/25.3;
         max_damping_db
         max_damping
         max_rege_damping
@@ -55,9 +56,16 @@ classdef ActMccpvd
                 if isfield(param,'R1'), obj.R1 = param.R1; end
                 if isfield(param,'R2'), obj.R2 = param.R2; end
                 if isfield(param,'Ks'), obj.Ks = param.Ks; end
+                if isfield(param,'Rl')
+                    obj.Rl = param.Rl; obj.ratio_load = obj.Rl/obj.Rd; 
+                else
+                    obj.Rl = obj.Rd*obj.ratio_load;
+                end
             end
             
-            obj.Rl = obj.Rd*obj.ratio_load;
+            
+            
+            
             obj.max_damping = obj.Kd^2 * obj.gear_d^2/obj.Rd ;
             obj.max_rege_damping = obj.Kd^2 * obj.gear_d^2/(obj.Rd+obj.Rl);
             obj.u_max_regedamp = 1/(1 + obj.ratio_load);
