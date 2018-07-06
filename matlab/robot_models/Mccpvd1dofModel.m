@@ -48,7 +48,7 @@ classdef Mccpvd1dofModel
 %         D_m2 = 0.2009;
 %         R_m2 = 0.8222;
         
-         alpha_servo = 30; % Fan: fit from data
+         alpha_servo = 25; % Fan: fit from data
         %%%%
         
         %%%% dynamical properties

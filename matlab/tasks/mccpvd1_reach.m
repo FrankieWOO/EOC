@@ -104,6 +104,35 @@ classdef mccpvd1_reach
                 
             end
         end
+        function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_virspf(self,x,u,t)
+            if (isnan(u))
+                % final cost
+                fl = @(x) self.costf(x);
+                l = fl(x);
+                if nargout>1
+                    flJ = @(x) get_jacobian_fd(fl, x);
+                    l_x = flJ(x);
+                    l_xx = get_hessian_fd(flJ,x);
+                end
+            else
+                x(3) = u(1);
+                x(4) = u(2);
+                fl = @(x,u,t) self.costr_spf_rege(x,u);
+                l = fl(x,u,t);
+                
+                
+                if nargout>1
+                    
+                    
+                    % finite difference
+                    flJ=@(x,u,t)J_cost_fd ( fl, x, u, t );
+                    [l_x ,l_u      ] = flJ ( x, u, t );
+                    flH =@(x,u,t)H_cost_fd  ( flJ, x, u, t );
+                    [l_xx,l_uu,l_ux] = flH  ( x, u, t );
+                end
+                
+            end
+        end
         function [l, l_x, l_xx, l_u, l_uu, l_ux] = j_effort(self,x,u,t)
             if (isnan(u))
                 % final cost

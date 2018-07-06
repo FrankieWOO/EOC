@@ -11,7 +11,11 @@ function [ h ] = plot_traj_mccpvd1( traj )
     title('trajectory')
     subplot(2,1,1)
     hold on
-    plot(t,x(1,:))
+    plot(t, x(1,:))
+    
+    if isfield(traj, 'target')
+        plot(t, ones( size( x(1,:)))*traj.target, '--');
+    end
     xlabel('time')
     ylabel('position')
     hold off

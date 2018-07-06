@@ -441,7 +441,7 @@ classdef ILQRController < OptController
             end
             if isfield(p,'dcost_converge'     ),dcost_converge      = p.dcost_converge  ;
             else
-                dcost_converge     = 1e-9    ;
+                dcost_converge     = 1e-4    ;
             end
             if isfield(p,'iter_max'           ),iter_max            = p.iter_max     ;
             else

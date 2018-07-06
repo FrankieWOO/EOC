@@ -29,7 +29,7 @@ classdef ActMccpvd
         %%%% - damping motor - %%%%
         motor_inertia = 4.6*10^(-6);
         Id = 0.00184
-        gear_d = 20;
+        gear_d = 40;
         Kd = 0.0212; %torque constant
         Rd = 21.2;
         Rl = 25.3;

@@ -32,10 +32,10 @@ x0(4) = 0; % initial motor2
 cost_param = [];
 %cost_param.w0 = 1;
 
-cost_param.w_e = 0;
+cost_param.w_e = 1e0;
 cost_param.w_t = 1e3;
 cost_param.w_tf = cost_param.w_t;
-cost_param.w_r = 1e-5;
+cost_param.w_r = 0;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 1e-6;
 cost_param.T = T;
@@ -53,8 +53,8 @@ task1 = mccpvd1_reach(robot_model, cost_param);
 %cost_param2=cost_param;
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
-j1 = @(x,u,t)task1.j_effort(x,u,t);
-j2 = @(x,u,t)task1.j_effort_rege(x,u,t);
+%j1 = @(x,u,t)task1.j_spf(x,u,t);
+j2 = @(x,u,t)task1.j_spf_rege(x,u,t);
 %disj1 = @(x, u, t) discrete_cost(j1, x, u, t);
 %disj2 = @(x, u, t) discrete_cost(j2, x, u, t);
 
@@ -70,12 +70,12 @@ Op.lims = [robot_model.umin, robot_model.umax];
 opt_param = [];
 opt_param.umax = robot_model.umax; 
 opt_param.umin = robot_model.umin;
-opt_param.lambda_init = 0.01;
-opt_param.lambda_max  = 1e20;
+opt_param.lambda_init = 1;
+opt_param.lambda_max  = 1e10;
 opt_param.iter_max = 300;
 opt_param.online_plotting = 0;
 opt_param.online_printing = 1;
-opt_param.dcost_converge = 10^-9;
+opt_param.dcost_converge = 10^-4;
 opt_param.solver = 'rk4';
 opt_param.target = target;
 
@@ -89,7 +89,7 @@ opt_param.T = T;
 
 % u0 can be full command sequence or just initial point
 %u0 = result0.u;
-u0 = [target; x0(4); 0];
+u0 = [target; 0; 0];
 %u0 = [0.5;0.1;0.2];
 u0 = repmat(u0, 1, N-1);
 

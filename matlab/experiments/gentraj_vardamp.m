@@ -1,7 +1,18 @@
+function [ result ] = gentraj_vardamp( position0, target, u2 )
 %%%% step 1: define robot
 % the maccepavd robot model has 8 state dimension
 
-%param_act.ratio_load = 0;
+if nargin > 0
+    position0 = position0;
+    target = target;
+    u2 = u2;
+else
+    position0 = 0;
+    target = pi/4;
+    u2 = 0;
+end
+
+
 param_act.ratio_load = 1;
 param_act.gear_d = 40;
 %param_act.Kd = 0.0212;
@@ -19,15 +30,13 @@ robot_model = Mccpvd1dofModel(robot_param, param_act);
 
 %%%% step 2: define task
 %---- user specification ----%
-target = pi/4;
 T = 2;
 dt = 0.02;
 N = T/dt + 1;
 %alpha = 0.7;
-position0 = 0;
 x0 = zeros(6,1); 
 x0(1) = position0;
-x0(3) = position0;
+x0(3) = u2;
 x0(5) = 0;
 
 %%%% step 3: set cost function parameters
@@ -69,31 +78,33 @@ j = @(x,u,t)task1.j_spf_rege(x,u,t);
 opt_param = [];
 opt_param.umax = robot_model.umax; 
 opt_param.umin = robot_model.umin;
-opt_param.lambda_init = 0.01;
+opt_param.lambda_init = 1;
 opt_param.lambda_max  = 1e10;
-opt_param.iter_max = 200;
+opt_param.iter_max = 150;
 opt_param.online_plotting = 0;
 opt_param.online_printing = 1;
-opt_param.dcost_converge = 1e-4;
+opt_param.dcost_converge = 1e-3;
 opt_param.solver = 'rk4';
 opt_param.target = target;
 
 opt_param.T = T;
 
+opt_param.umax = [target; u2; 0.2];
+opt_param.umin = [target; u2; 0];
 % u0 can be full command sequence or just initial point
-u0 = [cost_param.target; 0; 0];
+u0 = [cost_param.target; u2; 0];
 %u0 = [0; 0.1; 0];
 
-result1 = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
+result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 %result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
-%result3 = ILQRController.ilqr(f, j3, dt, N, x0, result1.u, opt_param);
+%result3 = ILQRController.ilqr(f, j3, dt, N, x0, result.u, opt_param);
 
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
 %% Do a forward pass to evaluate the trajectory with dt = 0.001 for simulation
 t = 0:dt:T;
 tsim = 0:0.001:T;
-usim1 = scale_controlSeq(result1.u,t,tsim);
-result1.t = t;
+usim1 = scale_controlSeq(result.u,t,tsim);
+result.t = t;
 psim.solver = 'rk4';
 psim.dt = 0.001;
 xsim1 = simulate_feedforward(x0,f,usim1,psim);
@@ -103,14 +114,16 @@ xsim1 = simulate_feedforward(x0,f,usim1,psim);
 %result3.usim = scale_controlSeq(result3.u,t,tsim);
 %result3.xsim = simulate_feedforward(x0,f,result3.usim,psim);
 
-%tjf1 = traj_features(robot_model,result1.x,result1.u,0.02, cost_param);
+%tjf1 = traj_features(robot_model,result.x,result.u,0.02, cost_param);
 %tjf2 = traj_features(robot_model,result2.x,result2.u,0.02, cost_param);
 %tjf3 = traj_features(robot_model,result3.x,result3.u,0.02);
 %tjf1sim = traj_features(robot_model, xsim1,usim1,0.001, cost_param);
 %tjf2sim = traj_features(robot_model, result2.xsim,result2.usim,0.001, cost_param);
 %tjf3sim = traj_features(robot_model, result3.xsim,result3.usim,0.001);
 
-plot_traj_mccpvd1(result1);
+plot_traj_mccpvd1(result);
+
+assignin('base', 'traj', result)
 
 %%
 % 
@@ -121,3 +134,7 @@ plot_traj_mccpvd1(result1);
 % end
 % figure
 % plot(uu3, dd, uu3, pp)
+
+
+end
+
