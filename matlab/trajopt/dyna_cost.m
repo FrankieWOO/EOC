@@ -2,10 +2,14 @@ function [f,c,fx,fu,fxx,fxu,fuu,cx,cu,cxx,cxu,cuu] = dyna_cost(dyn, cst, x, u, i
 % combine dynamics (continuous) and cost functions  for iLQG
 % dyn, cst: function handlers of
 dt = 0.02;
-disdyn = @(x,u)discrete_dynamics(dyn, x, u);
+op.sdt = 0.02;
+disdyn = @(x,u)discrete_dynamics(dyn, x, u, op);
 if nargout == 2 
     f = disdyn(x, u);
-    c = cst(x, u, i)*dt;
+    c = cst(x, u, i);
+    if ~isnan(u)
+        c = c*dt;
+    end
 else
     [dimx, N] = size(x);
     dimu = size(u,1);
@@ -17,7 +21,7 @@ else
     fx = zeros(dimx,dimx,N);
     fu = zeros(dimx,dimu,N);
     for n = 1:N-1
-        % linearize dynamics, adjust for dt
+        % linearize dynamics
         %[ff, f_x, f_u] = f(x(:,n), u(:,n));
         xu = [x(:,n);u(:,n)];
         ff = @(xu)disdyn(xu(1:dimx),xu(dimx+1:end));

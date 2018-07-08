@@ -34,7 +34,7 @@ classdef ActMccpvd
         Rd = 21.2;
         Rl = 25.3;
         
-        ratio_load = 21.2/25.3;
+        ratio_load = 21.2/25;
         max_damping_db
         max_damping
         max_rege_damping
@@ -58,8 +58,6 @@ classdef ActMccpvd
                 if isfield(param,'Ks'), obj.Ks = param.Ks; end
                 if isfield(param,'Rl')
                     obj.Rl = param.Rl; obj.ratio_load = obj.Rl/obj.Rd; 
-                else
-                    obj.Rl = obj.Rd*obj.ratio_load;
                 end
             end
             
@@ -68,28 +66,32 @@ classdef ActMccpvd
             
             obj.max_damping = obj.Kd^2 * obj.gear_d^2/obj.Rd ;
             obj.max_rege_damping = obj.Kd^2 * obj.gear_d^2/(obj.Rd+obj.Rl);
-            obj.u_max_regedamp = 1/(1 + obj.ratio_load);
+            %obj.u_max_regedamp = 1/(1 + obj.ratio_load);
+            obj.u_max_regedamp = 0.5;
             obj.Id = obj.motor_inertia*obj.gear_d^2;
         end
         
         %variable damping
         function d = damping(obj, u3)
-%             
-%             ratio = obj.ratio_load;
-%             if u3 < 0
-%                 power = NaN;
-%                  return;
-%             elseif u3 <= obj.u_max_regedamp
-%                 DC1 = u3/obj.u_max_regedamp;
-%                 DC2 = 0;
-%             elseif u3 <= 1
-%                 DC1 = 1; 
-%                 DC2 = ( u3 - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp );                
-%             end
-%             
-%             d = obj.max_rege_damping*DC1 + obj.max_rege_damping*DC2*ratio;
-%             
-            d = obj.max_damping*u3;
+             
+             ratio = obj.ratio_load;
+             if u3 < 0
+                 DC1 = 0;
+                 DC2 = 0;
+             elseif u3 <= obj.u_max_regedamp
+                 DC1 = u3/obj.u_max_regedamp;
+                 DC2 = 0;
+             elseif u3 <= 1
+                 DC1 = 1; 
+                 DC2 = ( u3 - obj.u_max_regedamp )./( 1 - obj.u_max_regedamp );
+             else
+                 DC1 = 1;
+                 DC2 = 1;
+             end
+             
+             d = obj.max_rege_damping*DC1 + obj.max_rege_damping*DC2*ratio;
+             
+            %d = obj.max_damping*u3;
         end
         
        
@@ -107,14 +109,13 @@ classdef ActMccpvd
                 DC2 = 0;
             elseif u <= 1
                 DC1 = 1;
-                DC2 = ( u - obj.u_max_regedamp )/( 1 - obj.u_max_regedamp ); 
+                DC2 = ( u - obj.u_max_regedamp )./( 1 - obj.u_max_regedamp ); 
             else
                 DC1 = 1;
                 DC2 = 1;
             end
             
-            power = obj.max_rege_damping*alpha*qdot^2*DC1 - ...
-                obj.max_rege_damping*alpha*qdot^2*DC2;
+            power = obj.max_rege_damping*alpha*(qdot.^2).*(DC1 - DC2);
         end
         
         function p = p_damp_inputelec(obj, qdot, u)
@@ -145,10 +146,14 @@ classdef ActMccpvd
                 (1+ (obj.r*m2 - obj.A0)./A );
         end
         function tau = torque_load1(obj, q, theta1, theta2)
-            tau = obj.torque_spring(q, theta1, theta2)/obj.gear;
+            % tau = - dU/dtheta1
+            tau = -obj.torque_spring(q, theta1, theta2)/obj.gear;
         end
         function tau = torque_load2(obj, q, theta1, theta2)
-            tau = obj.spring_force(q, theta1, theta2)*obj.r;
+            % tau = - dU/dtheta2
+            phi = theta1/obj.gear - q;
+            A = sqrt( obj.C^2 + obj.B^2 - 2*(obj.B*obj.C).*cos( phi ));
+            tau = -obj.Ks*(A + obj.r*theta2 - obj.A0)*obj.r;
         end
         function force = spring_force(obj, q, theta1, theta2)
             sprlength = obj.spring_displacement(q,theta1, theta2);

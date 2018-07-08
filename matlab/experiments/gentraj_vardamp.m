@@ -9,7 +9,7 @@ if nargin > 0
 else
     position0 = 0;
     target = pi/4;
-    u2 = 0;
+    u2 = pi/6;
 end
 
 
@@ -34,9 +34,11 @@ T = 2;
 dt = 0.02;
 N = T/dt + 1;
 %alpha = 0.7;
+min_preload = pi/6;
 x0 = zeros(6,1); 
 x0(1) = position0;
-x0(3) = u2;
+x0(3) = position0;
+x0(4) = min_preload;
 x0(5) = 0;
 
 %%%% step 3: set cost function parameters
@@ -89,7 +91,7 @@ opt_param.target = target;
 
 opt_param.T = T;
 
-opt_param.umax = [target; u2; 0.2];
+opt_param.umax = [target; u2; 1];
 opt_param.umin = [target; u2; 0];
 % u0 can be full command sequence or just initial point
 u0 = [cost_param.target; u2; 0];
@@ -120,7 +122,7 @@ xsim1 = simulate_feedforward(x0,f,usim1,psim);
 %tjf1sim = traj_features(robot_model, xsim1,usim1,0.001, cost_param);
 %tjf2sim = traj_features(robot_model, result2.xsim,result2.usim,0.001, cost_param);
 %tjf3sim = traj_features(robot_model, result3.xsim,result3.usim,0.001);
-
+result.target = target;
 plot_traj_mccpvd1(result);
 
 assignin('base', 'traj', result)

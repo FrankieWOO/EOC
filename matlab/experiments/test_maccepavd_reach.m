@@ -24,10 +24,12 @@ T = 2;
 dt = 0.02;
 N = T/dt + 1;
 %alpha = 0.7;
+min_preload = pi/6;
 position0 = 0;
 x0 = zeros(6,1); 
 x0(1) = position0;
 x0(3) = position0;
+x0(4) = min_preload;
 x0(5) = 0;
 
 %%%% step 3: set cost function parameters
@@ -83,7 +85,8 @@ opt_param.T = T;
 % u0 can be full command sequence or just initial point
 u0 = [cost_param.target; 0; 0];
 %u0 = [0; 0.1; 0];
-
+opt_param.umin(2) = min_preload;
+opt_param.umax(2) = pi/2;
 result1 = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 %result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
 %result3 = ILQRController.ilqr(f, j3, dt, N, x0, result1.u, opt_param);

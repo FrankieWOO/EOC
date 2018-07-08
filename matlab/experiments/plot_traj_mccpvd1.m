@@ -29,11 +29,19 @@ function [ h ] = plot_traj_mccpvd1( traj )
     
     fig2 = figure();
     subplot(3,1,1)
+    hold on
     plot(t(1:end-1), u(1,:))
-    ylabel('u1')
+    plot(t(1:end-1), x(3,1:end-1))
+    ylabel('motor 1')
+    legend('u1','\theta_1')
+    hold off
     subplot(3,1,2)
+    hold on
     plot(t(1:end-1), u(2,:))
-    ylabel('u2')
+    plot(t(1:end-1), x(4,1:end-1))
+    hold off
+    ylabel('motor 2')
+    legend('u2','\theta_2')
     subplot(3,1,3)
     plot(t(1:end-1), u(3,:))
     ylabel('u3')

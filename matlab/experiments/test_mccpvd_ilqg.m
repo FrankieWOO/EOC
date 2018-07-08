@@ -17,7 +17,7 @@ robot_model = Mccpvd1dofModel(robot_param, param_act);
 
 target = pi/4;
 T = 2;
-dt = 0.02;
+dt = 0.02; %control time step
 N = T/dt + 1;
 t = 0:dt:T;
 %alpha = 0.7;
@@ -34,7 +34,7 @@ cost_param = [];
 
 cost_param.w_e = 1e0;
 cost_param.w_t = 1e3;
-cost_param.w_tf = cost_param.w_t;
+cost_param.w_tf = cost_param.w_t*dt;
 cost_param.w_r = 0;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 1e-6;
@@ -58,10 +58,9 @@ j2 = @(x,u,t)task1.j_spf_rege(x,u,t);
 %disj1 = @(x, u, t) discrete_cost(j1, x, u, t);
 %disj2 = @(x, u, t) discrete_cost(j2, x, u, t);
 
-dyncst1 = @(x, u, i) dyna_cost(f, j1, x, u, i);
+dyncst1 = @(x, u, i)dyna_cost(f, j1, x, u, i);
 dyncst2 = @(x, u, i)dyna_cost(f, j2, x, u, i);
-% control limits
-Op.lims = [robot_model.umin, robot_model.umax];
+
 %Op.lambda = 0.01;
 %Op.dlambda = 0.01;
 %Op.lambdaMax = 1e20;
@@ -72,14 +71,9 @@ opt_param.umax = robot_model.umax;
 opt_param.umin = robot_model.umin;
 opt_param.lambda_init = 1;
 opt_param.lambda_max  = 1e10;
-opt_param.iter_max = 300;
-opt_param.online_plotting = 0;
-opt_param.online_printing = 1;
-opt_param.dcost_converge = 10^-4;
-opt_param.solver = 'rk4';
-opt_param.target = target;
-
-opt_param.T = T;
+Op.maxIter = 300;
+Op.tolGrad = 1e-4;
+Op.print = 2;
 
 %opt_param.umin(1) = target;
 %opt_param.umax(1) = target;
@@ -162,4 +156,6 @@ end
 result1.E = sum(result1.Plink)*psim.dt;
 result1.T = T;
 result1.t = t;
-
+%%
+result1.target = target;
+plot_traj_mccpvd1(result1);
