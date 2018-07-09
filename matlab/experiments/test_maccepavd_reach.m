@@ -51,12 +51,12 @@ cost_param.x0 = x0;
 %% init 
 f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
 
-task1 = mccpvd1_reach(robot_model, cost_param);
+task = mccpvd1_reach(robot_model, cost_param);
 %cost_param2=cost_param;
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
 %j1 = @(x,u,t)task1.j_effort(x,u,t);
-j = @(x,u,t)task1.j_spf_rege(x,u,t);
+j = @(x,u,t)task.j_spf_rege(x,u,t);
 
 %j2 = @(x,u,t)task2.j_tf_elec(x,u,t);
 %j3 = @(x,u,t)task2.j_tf_elec_rege(x,u,t);
@@ -87,19 +87,20 @@ u0 = [cost_param.target; 0; 0];
 %u0 = [0; 0.1; 0];
 opt_param.umin(2) = min_preload;
 opt_param.umax(2) = pi/2;
-result1 = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
+
+result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 %result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
 %result3 = ILQRController.ilqr(f, j3, dt, N, x0, result1.u, opt_param);
 
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
 %% Do a forward pass to evaluate the trajectory with dt = 0.001 for simulation
-t = 0:dt:T;
-tsim = 0:0.001:T;
-usim1 = scale_controlSeq(result1.u,t,tsim);
-result1.t = t;
-psim.solver = 'rk4';
-psim.dt = 0.001;
-xsim1 = simulate_feedforward(x0,f,usim1,psim);
+% t = 0:dt:T;
+% tsim = 0:0.001:T;
+% usim1 = scale_controlSeq(result1.u,t,tsim);
+% result1.t = t;
+% psim.solver = 'rk4';
+% psim.dt = 0.001;
+% xsim1 = simulate_feedforward(x0,f,usim1,psim);
 
 %result2.usim = scale_controlSeq(result2.u,t,tsim);
 %result2.xsim = simulate_feedforward(x0,f,result2.usim,psim);
@@ -113,7 +114,9 @@ xsim1 = simulate_feedforward(x0,f,usim1,psim);
 %tjf2sim = traj_features(robot_model, result2.xsim,result2.usim,0.001, cost_param);
 %tjf3sim = traj_features(robot_model, result3.xsim,result3.usim,0.001);
 
-plot_traj_mccpvd1(result1);
+traj = val_traj_mccpvd(robot_model, task, result);
+
+plot_traj_mccpvd1(traj);
 
 %%
 % 

@@ -161,7 +161,7 @@ classdef ActMccpvd
         end
         function sprlength = spring_displacement(obj, q, theta1, theta2)
             
-            A = sqrt(obj.C^2 + obj.B^2 - 2*obj.B*obj.C*cos(theta1/obj.gear-q));
+            A = sqrt(obj.C^2 + obj.B^2 - 2*obj.B*obj.C*cos(theta1/obj.gear - q) );
             sprlength = A + obj.r*theta2 - obj.A0; 
         end
         
@@ -172,6 +172,7 @@ classdef ActMccpvd
             k=  obj.Ks*obj.B*obj.C*cos(phi)*( 1 + (obj.r*theta2 - obj.A0)/A ) - ...
                 obj.Ks*(obj.B*obj.C*sin(phi))^2*( obj.r*theta2 - obj.A0 )/A^1.5 ;
         end
+        
         
     end
     

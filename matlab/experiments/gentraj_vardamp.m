@@ -1,4 +1,5 @@
 function [ result ] = gentraj_vardamp( position0, target, u2 )
+
 %%%% step 1: define robot
 % the maccepavd robot model has 8 state dimension
 

@@ -320,6 +320,11 @@ classdef Mccpvd1dofModel
             % power of regeneration
             p = model.actuator.power_rege(x(2,:),u(3,:));
         end
+        function E = energy_spring(model, x, u)
+            l = model.actuator.spring_displacement(x(1,:),x(3,:),x(4,:));
+            E = model.actuator.Ks*(l.^2)/2;
+        end
+        %%%% to-do: the following power calculation need reviewing
         function [power, p1, p2] = power_mech(model,x,u)
             tau_m1 = model.tau_m1(x,u);
             tau_m2 = model.tau_m2(x,u);
