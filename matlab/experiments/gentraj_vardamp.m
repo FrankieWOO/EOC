@@ -1,4 +1,4 @@
-function [ result ] = gentraj_vardamp( position0, target, u2 )
+function [ traj ] = gentraj_vardamp( position0, target, u2 )
 
 %%%% step 1: define robot
 % the maccepavd robot model has 8 state dimension
@@ -31,8 +31,9 @@ robot_model = Mccpvd1dofModel(robot_param, param_act);
 
 %%%% step 2: define task
 %---- user specification ----%
-T = 2;
+T = 1.2;
 dt = 0.02;
+t = 0:dt:T;
 N = T/dt + 1;
 %alpha = 0.7;
 min_preload = pi/6;
@@ -61,12 +62,12 @@ cost_param.x0 = x0;
 %% init 
 f = @(x,u)robot_model.dynamics_with_jacobian_fd(x,u);
 
-task1 = mccpvd1_reach(robot_model, cost_param);
+task = mccpvd1_reach(robot_model, cost_param);
 %cost_param2=cost_param;
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
 %j1 = @(x,u,t)task1.j_effort(x,u,t);
-j = @(x,u,t)task1.j_spf_rege(x,u,t);
+j = @(x,u,t)task.j_spf_rege(x,u,t);
 
 %j2 = @(x,u,t)task2.j_tf_elec(x,u,t);
 %j3 = @(x,u,t)task2.j_tf_elec_rege(x,u,t);
@@ -98,19 +99,13 @@ opt_param.umin = [target; u2; 0];
 u0 = [cost_param.target; u2; 0];
 %u0 = [0; 0.1; 0];
 
-result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
+traj = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 %result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
 %result3 = ILQRController.ilqr(f, j3, dt, N, x0, result.u, opt_param);
 
 %result = ILQRController.run_multiple(f, j, dt, N, x0, u0, opt_param);
 %% Do a forward pass to evaluate the trajectory with dt = 0.001 for simulation
-t = 0:dt:T;
-tsim = 0:0.001:T;
-usim1 = scale_controlSeq(result.u,t,tsim);
-result.t = t;
-psim.solver = 'rk4';
-psim.dt = 0.001;
-xsim1 = simulate_feedforward(x0,f,usim1,psim);
+
 
 %result2.usim = scale_controlSeq(result2.u,t,tsim);
 %result2.xsim = simulate_feedforward(x0,f,result2.usim,psim);
@@ -123,10 +118,14 @@ xsim1 = simulate_feedforward(x0,f,usim1,psim);
 %tjf1sim = traj_features(robot_model, xsim1,usim1,0.001, cost_param);
 %tjf2sim = traj_features(robot_model, result2.xsim,result2.usim,0.001, cost_param);
 %tjf3sim = traj_features(robot_model, result3.xsim,result3.usim,0.001);
-result.target = target;
-plot_traj_mccpvd1(result);
+traj.t =t;
+traj = val_traj_mccpvd(robot_model, task, traj);
 
-assignin('base', 'traj', result)
+%plot_traj_mccpvd1(traj);
+
+%assignin('base', 'traj', traj);
+
+%save('tjlib/vardamp/test.mat','traj');
 
 %%
 % 
@@ -137,7 +136,6 @@ assignin('base', 'traj', result)
 % end
 % figure
 % plot(uu3, dd, uu3, pp)
-
 
 end
 
