@@ -1,5 +1,4 @@
 
-
 num_targets = 25;
 init_position = 0;
 joint_limit = [-pi/3, pi/3];
@@ -19,11 +18,14 @@ for iter = 1:num_targets
     q0 = rd; % assume we can get to the target
 end
 %%
-folderpath = 'tjlib/vardamp/';
-for k = 1:num_targets
-    filename = [folderpath,'traj',num2str(k),'.csv'];
+folderpath = 'trajs/vardamp/';
+for k = 1 : num_targets
+    filename = [folderpath,'command/','traj',num2str(k),'.csv'];
     savetraj_to_csv(filename, traj_list{k});
 end
 
 %%
 save([folderpath, 'vardamp.mat'])
+
+%%
+datapath = [folderpath,'record/'];
