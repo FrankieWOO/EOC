@@ -1,4 +1,4 @@
-function [ traj ] = gentraj_vardamp( position0, target, u2 )
+function [ traj ] = gentraj_optimal( position0, target, w_r )
 
 %%%% step 1: define robot
 % the maccepavd robot model has 8 state dimension
@@ -51,7 +51,7 @@ cost_param = [];
 cost_param.w_e = 1e0;
 cost_param.w_t = 1e3;
 cost_param.w_tf = cost_param.w_t*dt;
-cost_param.w_r = 1e4;
+cost_param.w_r = w_r;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 1e-6;
 cost_param.T = T;
@@ -93,8 +93,8 @@ opt_param.target = target;
 
 opt_param.T = T;
 
-opt_param.umax = [target; u2; 1];
-opt_param.umin = [target; u2; 0];
+opt_param.umax = [target; pi/2; 1];
+opt_param.umin = [target; min_preload; 0];
 % u0 can be full command sequence or just initial point
 u0 = [cost_param.target; u2; 0];
 %u0 = [0; 0.1; 0];
@@ -121,11 +121,7 @@ traj = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 traj.t =t;
 traj = val_traj_mccpvd(robot_model, task, traj);
 
-if nargin == 0
-    plot_traj_mccpvd1(traj);   
-end
-
-%
+%plot_traj_mccpvd1(traj);
 
 %assignin('base', 'traj', traj);
 

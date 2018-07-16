@@ -17,6 +17,7 @@ for iter = 1:num_targets
     traj_list{iter} = traj;
     q0 = rd; % assume we can get to the target
 end
+
 %%
 folderpath = 'trajs/vardamp/';
 for k = 1 : num_targets
@@ -24,7 +25,6 @@ for k = 1 : num_targets
     savetraj_to_csv(filename, traj_list{k});
 end
 
-%%
 save([folderpath, 'vardamp.mat'])
 
 %%

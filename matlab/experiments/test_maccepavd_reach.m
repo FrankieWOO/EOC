@@ -89,6 +89,8 @@ opt_param.umin(2) = min_preload;
 opt_param.umax(2) = pi/2;
 
 result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
+t = 0:dt:T;
+result.t = t;
 %result2 = ILQRController.ilqr(f, j2, dt, N, x0, u0, opt_param);
 %result3 = ILQRController.ilqr(f, j3, dt, N, x0, result1.u, opt_param);
 
@@ -117,6 +119,10 @@ result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 traj = val_traj_mccpvd(robot_model, task, result);
 
 plot_traj_mccpvd1(traj);
+%%
+traj.u(1,:) = traj.x(3,1:end-1);
+traj.u(2,:) = traj.x(4,1:end-1);
+savetraj_to_csv('trajs/test/test_reach.csv', traj);
 
 %%
 % 
