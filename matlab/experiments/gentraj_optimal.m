@@ -1,16 +1,19 @@
-function [ traj ] = gentraj_optimal( position0, target, w_r )
+function [ traj ] = gentraj_optimal( x0, target, w_r )
 
 %%%% step 1: define robot
 % the maccepavd robot model has 8 state dimension
-
+min_preload = pi/6;
 if nargin > 0
-    position0 = position0;
+    x0 = x0;
     target = target;
-    u2 = u2;
+    w_r = w_r;
 else
-    position0 = 0;
+    
+    x0 = zeros(6,1); 
+    x0(4) = min_preload;
+    w_r = 5e2;
     target = pi/4;
-    u2 = pi/6;
+    
 end
 
 
@@ -24,7 +27,7 @@ param_act.gear_d = 40;
 %param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-robot_param.inertia_l = 0.0015;
+robot_param.inertia = 3.19e-3;
 robot_param.Df = 0.004;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
@@ -36,12 +39,8 @@ dt = 0.02;
 t = 0:dt:T;
 N = T/dt + 1;
 %alpha = 0.7;
-min_preload = pi/6;
-x0 = zeros(6,1); 
-x0(1) = position0;
-x0(3) = position0;
-x0(4) = min_preload;
-x0(5) = 0;
+
+
 
 %%%% step 3: set cost function parameters
 
@@ -93,10 +92,10 @@ opt_param.target = target;
 
 opt_param.T = T;
 
-opt_param.umax = [target; pi/2; 1];
-opt_param.umin = [target; min_preload; 0];
+opt_param.umax = [pi/3; pi/2; 1];
+opt_param.umin = [-pi/3; min_preload; 0];
 % u0 can be full command sequence or just initial point
-u0 = [cost_param.target; u2; 0];
+u0 = [cost_param.target; min_preload; 0.5];
 %u0 = [0; 0.1; 0];
 
 traj = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
@@ -120,7 +119,9 @@ traj = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 %tjf3sim = traj_features(robot_model, result3.xsim,result3.usim,0.001);
 traj.t =t;
 traj = val_traj_mccpvd(robot_model, task, traj);
-
+if nargin == 0
+    plot_traj_mccpvd1(traj);   
+end
 %plot_traj_mccpvd1(traj);
 
 %assignin('base', 'traj', traj);

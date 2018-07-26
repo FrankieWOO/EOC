@@ -12,7 +12,8 @@ param_act.gear_d = 40;
 %param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-robot_param.inertia_l = 0.0015;
+%robot_param.inertia_l = 0.0015;
+robot_param.inertia = 3.19e-3;
 robot_param.Df = 0.004;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
@@ -28,9 +29,9 @@ min_preload = pi/6;
 position0 = 0;
 x0 = zeros(6,1); 
 x0(1) = position0;
-x0(3) = position0;
-x0(4) = min_preload;
-x0(5) = 0;
+x0(3) = position0; % motor1
+x0(4) = min_preload; % motor2
+x0(5) = 0; % motor1 velocity
 
 %%%% step 3: set cost function parameters
 
@@ -83,7 +84,7 @@ opt_param.target = target;
 opt_param.T = T;
 
 % u0 can be full command sequence or just initial point
-u0 = [cost_param.target; 0; 0];
+u0 = [cost_param.target; min_preload; 0];
 %u0 = [0; 0.1; 0];
 opt_param.umin(2) = min_preload;
 opt_param.umax(2) = pi/2;

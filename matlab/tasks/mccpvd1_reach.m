@@ -264,8 +264,9 @@ classdef mccpvd1_reach
         end
         function c = costr_spf_rege(self, x, u)
             c = self.costr_spf(x, u);
-            p_rege = self.robot_model.power_rege(x,u);
-            c = c - p_rege*self.w_r;
+            %p_rege = self.robot_model.power_rege(x,u);
+            %c = c - p_rege*self.w_r;
+            c = c + self.w_r* (u(3,:)-0.5).^2;
         end
         function c = costr_effort_rege(self, x,u)
             %error = x(1:2) - self.target_q;

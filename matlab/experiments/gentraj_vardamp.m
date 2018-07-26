@@ -24,7 +24,8 @@ param_act.gear_d = 40;
 %param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-robot_param.inertia_l = 0.0015;
+%robot_param.inertia_l = 0.0015;
+robot_param.inertia = 3.19e-3;
 robot_param.Df = 0.004;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
@@ -51,7 +52,7 @@ cost_param = [];
 cost_param.w_e = 1e0;
 cost_param.w_t = 1e3;
 cost_param.w_tf = cost_param.w_t*dt;
-cost_param.w_r = 1e4;
+cost_param.w_r = 5e2;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 1e-6;
 cost_param.T = T;
@@ -67,6 +68,11 @@ task = mccpvd1_reach(robot_model, cost_param);
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
 %j1 = @(x,u,t)task1.j_effort(x,u,t);
+
+
+% --- 
+% c = c + self.w_r* (u(3,:)-0.5).^2;
+% ---
 j = @(x,u,t)task.j_spf_rege(x,u,t);
 
 %j2 = @(x,u,t)task2.j_tf_elec(x,u,t);
@@ -87,7 +93,7 @@ opt_param.lambda_max  = 1e10;
 opt_param.iter_max = 150;
 opt_param.online_plotting = 0;
 opt_param.online_printing = 1;
-opt_param.dcost_converge = 1e-3;
+opt_param.dcost_converge = 1e-4;
 opt_param.solver = 'rk4';
 opt_param.target = target;
 

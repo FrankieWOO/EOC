@@ -72,23 +72,12 @@ classdef ActMccpvd
         end
         
         %variable damping
-        function d = damping(obj, u3)
+        function d = damping(obj, u)
              
              ratio = obj.ratio_load;
-             if u3 < 0
-                 DC1 = 0;
-                 DC2 = 0;
-             elseif u3 <= obj.u_max_regedamp
-                 DC1 = u3/obj.u_max_regedamp;
-                 DC2 = 0;
-             elseif u3 <= 1
-                 DC1 = 1; 
-                 DC2 = ( u3 - obj.u_max_regedamp )./( 1 - obj.u_max_regedamp );
-             else
-                 DC1 = 1;
-                 DC2 = 1;
-             end
              
+             DC1 = max(min(u/obj.u_max_regedamp, 1),0);
+             DC2 = max(min(( u - obj.u_max_regedamp )./( 1 - obj.u_max_regedamp ), 1),0);
              d = obj.max_rege_damping*DC1 + obj.max_rege_damping*DC2*ratio;
              
             %d = obj.max_damping*u3;
@@ -100,21 +89,8 @@ classdef ActMccpvd
             ratio = obj.ratio_load;
             alpha = ratio/(1+ratio);
             
-            %power = NaN;
-            if u < 0
-                DC1 = 0;
-                DC2 = 0;
-            elseif u <= obj.u_max_regedamp
-                DC1 = u/obj.u_max_regedamp;
-                DC2 = 0;
-            elseif u <= 1
-                DC1 = 1;
-                DC2 = ( u - obj.u_max_regedamp )./( 1 - obj.u_max_regedamp ); 
-            else
-                DC1 = 1;
-                DC2 = 1;
-            end
-            
+            DC1 = max(min(u/obj.u_max_regedamp, 1),0);
+            DC2 = max(min(( u - obj.u_max_regedamp )./( 1 - obj.u_max_regedamp ), 1),0);
             power = obj.max_rege_damping*alpha*(qdot.^2).*(DC1 - DC2);
         end
         

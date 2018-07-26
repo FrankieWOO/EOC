@@ -26,12 +26,10 @@ classdef Mccpvd1dofModel
         link_length = 0.15;% link length
         link_mass = 0.09;
         com = 0.085;
-        mass
-        
         
         servo1_mass = 0.09;
         
-        
+        mass = 0.18; % servo1_mass + link_mass
         
 %         rege_ratio = 0;
         
@@ -54,12 +52,12 @@ classdef Mccpvd1dofModel
         %%%% dynamical properties
         % Fan: estimated by data  %calculated inertia: 0.00135
         % 
-        inertia = 0.00315
+        inertia = 3.19e-3
         inertia_l = 0.00135
         % frictions
         % viscous friction
         % Fan: 0.0022 estimated by data;
-        Df = 0.0062
+        Df = 0.0022
         % coulomb friction
         coulomb_friction = 0;
         % gravity constant
@@ -70,7 +68,7 @@ classdef Mccpvd1dofModel
         % u1 and u2 are defined in rad; round to int and below the physical
         % limit to protect the servo
         umax = [ pi/3; pi/2; 1] ;
-        umin = [-pi/3; 0; 0] ;
+        umin = [-pi/3; pi/6; 0] ;
         %%%%
         
         
@@ -131,7 +129,7 @@ classdef Mccpvd1dofModel
             end
             
             %model.inertia = model.inertia_l + model.actuator.Id;
-            model.mass = model.link_mass + model.servo1_mass;
+            %model.mass = model.link_mass + model.servo1_mass;
             
             %model = model.init_symfuns();
 

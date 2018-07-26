@@ -33,17 +33,21 @@ else
         % quadratize cost, adjust for dt
         [~,l_x,l_xx,l_u,l_uu,l_ux] = cst(x(:,n), u(:,n), i);
         %q0(    n) = dt*l0;
-        cx (  :,n) = dt*l_x;
-        cxx (:,:,n) = dt*l_xx;
-        cu (  :,n) = dt*l_u;
-        cuu (:,:,n) = dt*l_uu;
-        cxu (:,:,n) = dt*l_ux';
+        cx (  :,n) = l_x*dt;
+        cxx (:,:,n) = l_xx*dt;
+        cu (  :,n) = l_u*dt;
+        cuu (:,:,n) = l_uu*dt;
+        cxu (:,:,n) = l_ux'*dt;
         
     end
     
     [~,cx(:,N),cxx(:,:,N)] = cst(x(:,N), NaN, i);
+    
+    
     fx(:,:,N) = NaN(dimx,dimx);
     fu(:,:,N) = NaN(dimx,dimu);
+    
+    
     [fxx,fxu,fuu] = deal([]);
 
     
