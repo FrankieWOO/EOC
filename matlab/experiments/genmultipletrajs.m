@@ -24,16 +24,17 @@ end
 %%
 ws1 = load('trajs/constant/constant.mat');
 ws2 = load('trajs/vardamp/vardamp.mat');
-ws2 = load('trajs/optimal/optimal.mat');
+ws3 = load('trajs/optimal/optimal.mat');
 
 %%
+for i=1:length(data1)
+   
+end
+
+%% debug preprocess 
 dp = DataProcess();
 dd = dp.trim_head(data2{1});
-%%
-dd.p = dp.central_difference_smooth(dd.joint_position,5);
-dd.v = dp.compute_velocity_centraldiff(dd.p, dd.header);
 
-%%
 window_size = 3;
 %dd.p = dp.mavg_filter(dd.joint_position);
 dd.p = dp.central_difference_smooth(dd.joint_position,5);
@@ -81,3 +82,8 @@ plot(ws2.traj_list{1}.tsim, ws2.traj_list{1}.xsim(2,:))
 hold off
 subplot(2,1,2)
 plot(ws2.traj_list{1}.t(1:end-1), ws2.traj_list{1}.u(3,:))
+
+%% compute stats
+% accuracy, avg settle time, rege E, input E
+
+

@@ -74,6 +74,16 @@ classdef DataProcess
             
         end
         
+        % preprocess single traj recording
+        function [data] = preprocess_single_traj(data)
+            data = DataProcess.trim_head(data);
+            data.p = DataProcess.central_difference_smooth(data.joint_position,5);
+            data.v = DataProcess.compute_velocity_centraldiff(data.p, data.header);
+            data.acc = DataProcess.compute_accel_centraldiff(data.v, data.header);
+            data.Erege = DataProcess.compute_Erege(data.rege_current, data.header);
+            data.power_rege = DataProcess.compute_power_rege(data.rege_current);
+        end
+        
         function [] = plot_single_traj(data)
             
             plot(data.header, data.joint_position)
@@ -168,11 +178,25 @@ classdef DataProcess
         
         function [st] = settle_time(v, t)
             % 
-            
+            st = t(end);
+            halt = false;
             acc = DataProcess.compute_accel_centraldiff(v, t);
             for k = 1:length(t)
                 if (abs(v(k)) < 0.1) && (abs(acc(k)) < 1)
-                    
+                    st = t(k);
+                    for j=k+1:min(k+30,length(t))
+                        if (abs(v(k)) < 0.1) && (abs(acc(k)) < 1)
+                            halt = true;
+                        else
+                            halt = false;
+                        end
+                    end
+                    if halt == true
+                        break;
+                    else
+                        st = t(end);
+                        
+                    end
                 end
             end
             
