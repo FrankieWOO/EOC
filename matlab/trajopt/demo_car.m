@@ -43,7 +43,7 @@ plotFn = @(x) set(line_handle,'Xdata',x(1,:),'Ydata',x(2,:));
 Op.plotFn = plotFn;
 
 % === run the optimization!
-[x,u]= iLQG(DYNCST, x0, u0, Op);
+[x,u]= iLQGv0(DYNCST, x0, u0, Op);
 
 % animate the resulting trajectory
 figure(9)

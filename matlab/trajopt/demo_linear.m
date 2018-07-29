@@ -30,7 +30,7 @@ x0      = randn(n,1);       % initial state
 u0      = .1*randn(m,T);    % initial controls
 
 % run the optimization
-iLQG(DYNCST, x0, u0, Op);
+iLQGv0(DYNCST, x0, u0, Op);
 
 
 function [f,c,fx,fu,fxx,fxu,fuu,cx,cu,cxx,cxu,cuu] = lin_dyn_cst(x,u,A,B,Q,R)
