@@ -80,13 +80,99 @@ classdef DataProcess
             data.p = DataProcess.central_difference_smooth(data.joint_position,5);
             data.v = DataProcess.compute_velocity_centraldiff(data.p, data.header);
             data.acc = DataProcess.compute_accel_centraldiff(data.v, data.header);
-            data.Erege = DataProcess.compute_Erege(data.rege_current, data.header);
             data.power_rege = DataProcess.compute_power_rege(data.rege_current);
+            data.Erege = DataProcess.compute_Erege(data.rege_current, data.header);
+            data.settle_time = DataProcess.settle_time(data.v, data.header);
+            
         end
         
         function [] = plot_single_traj(data)
             
             plot(data.header, data.joint_position)
+        end
+        
+        
+        function stats = compute_trajs_stats(data)
+            stats.accuracy_score = 0;
+            stats.avg_settle_time = 0;
+            stats.total_Erege = 0;
+            stats.total_Ein = 0;
+            stats.pcnt_Erege = 0;
+            for i=1:length(data)
+                stats.accuracy_score = stats.accuracy_score + data{i}.accuracy_score;
+                stats.avg_settle_time = stats.avg_settle_time + data{i}.settle_time;
+                stats.total_Erege = stats.total_Erege + data{i}.Erege;
+            end
+            stats.accuracy_score = stats.accuracy_score/length(data);
+            stats.avg_settle_time = stats.avg_settle_time/length(data);
+        end
+        
+        % plot a list of trajs
+        % input: data - cell array of trajs
+        function [] = plot_trajs(data, target_list)
+            p = [];
+            v = [];
+            acc = [];
+            t = [];
+            power_rege=[];
+            % merge data
+            segments = zeros(length(data),1);
+            time_end_ind = 0;
+            last_time_end = 0;
+            target_lines = [];
+            for i = 1:length(data)
+                p = [p;data{i}.p];
+                v = [v;data{i}.v];
+                acc = [acc;data{i}.acc];
+                t = [t;data{i}.header+last_time_end];
+                last_time_end = last_time_end + data{i}.header(end);
+                power_rege = [power_rege;data{i}.power_rege];
+                time_end_ind = time_end_ind + length(data{i}.header);
+                segments(i) = time_end_ind;
+                
+                
+                target_lines = [target_lines; ones(size(data{i}.p))*target_list(i)];
+                
+            end
+            
+            
+            
+            
+            figure
+            subplot(3,1,1)
+            hold on
+            plot(t, p, 'LineWidth', 1)
+            plot(t, target_lines, '--')
+            yL = get(gca, 'YLim');
+            for k=1:length(data)
+                line([t(segments(k)) t(segments(k))], yL, 'LineStyle','--','Color',[0.5 0.5 0.5])
+            end
+            xlabel('time (s)')
+            ylabel('position (rad)')
+            hold off
+            
+            subplot(3,1,2)
+            hold on
+            plot(t, v,'LineWidth', 1)
+            yL = get(gca, 'YLim');
+            for k=1:length(data)
+                line([t(segments(k)) t(segments(k))], yL, 'LineStyle','--','Color',[0.5 0.5 0.5])
+            end
+            xlabel('time (s)')
+            ylabel('velocity (rad/s)')
+            hold off
+            
+            subplot(3,1,3)
+            hold on
+            plot(t, power_rege,'LineWidth', 1)
+            yL = get(gca, 'YLim');
+            for k=1:length(data)
+                line([t(segments(k)) t(segments(k))], yL, 'LineStyle','--','Color',[0.5 0.5 0.5])
+            end
+            xlabel('time (s)')
+            ylabel('power (W)')
+            hold off
+            
         end
         
         % input: sequence of position
@@ -125,13 +211,14 @@ classdef DataProcess
                 v(k) = mean( v( k-w:k+w ) );
             end
             
+            v(end-9:end) = DataProcess.mavg_filter(v(end-9:end), 3);
         end
         
         function [v] = compute_velocity_forwarddiff( p, t )
             % central difference and central window smoothing;
             v = zeros(size(p));
             %a = 0.8;
-            v(1) = 0;
+            v(1) = 0 ;
             for i = 2:length(p)-1
                 v(i) = (p(i+1) - p(i))/(t(i+1)- t(i));
             end
@@ -161,19 +248,23 @@ classdef DataProcess
             end
             acc(end) = (v(end) - v(end-1))/(t(end)- t(end-1));
             
-            window = 7;
-            for j = 1:window
-                acc(j) = mean(acc(1:2*j-1));
-            end
+%             window = 7;
+%             for j = 1:window
+%                 acc(j) = mean(acc(1:2*j-1));
+%             end
+%             
+%             for k = window+1:length(acc)-window
+%                 acc(k) = mean(acc(k-window:k+window));
+%             end
+%             
+%             for k = length(acc)-window+1:length(acc)
+%                 w = length(acc)-k;
+%                 acc(k) = mean( acc( k-w:k+w ) );
+%             end
+              
+            acc = DataProcess.central_difference_smooth(acc, 7);
+            acc(end-20:end) = DataProcess.mavg_filter(acc(end-20:end), 5);
             
-            for k = window+1:length(acc)-window
-                acc(k) = mean(acc(k-window:k+window));
-            end
-            
-            for k = length(acc)-window+1:length(acc)
-                w = length(acc)-k;
-                acc(k) = mean( acc( k-w:k+w ) );
-            end
         end
         
         function [st] = settle_time(v, t)
@@ -181,11 +272,14 @@ classdef DataProcess
             st = t(end);
             halt = false;
             acc = DataProcess.compute_accel_centraldiff(v, t);
-            for k = 1:length(t)
+            
+            [~, ind] = max(v);
+            
+            for k = ind:length(t)
                 if (abs(v(k)) < 0.1) && (abs(acc(k)) < 1)
                     st = t(k);
                     for j=k+1:min(k+30,length(t))
-                        if (abs(v(k)) < 0.1) && (abs(acc(k)) < 1)
+                        if (abs(v(k)) < 0.1) 
                             halt = true;
                         else
                             halt = false;
@@ -212,14 +306,14 @@ classdef DataProcess
             end
         end
         
-        function E = compute_Erege(p, t)
-            p = p/1000;
-            E = DataProcess.integrate(25*p.^2, t);
+        function E = compute_Erege(x, t)
+            p = DataProcess.compute_power_rege(x);
+            E = DataProcess.integrate(p, t);
         end
         
         function Prege = compute_power_rege(x)
-            x=x/1000;
-            Prege = 25*x.^2;
+            x = x/1000;
+            Prege = 25.3*x.^2;
         end
         
         function Y = integrate(x, t)
@@ -228,6 +322,11 @@ classdef DataProcess
             Y = sum(y.*dt);
         end
         
+        function score = compute_accuracy_score(x, t, target)
+            dt = mean(diff(t));
+            y = (x - target).^2;
+            score = sum(dt*y);
+        end
     end
     
 end
