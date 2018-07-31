@@ -1,20 +1,23 @@
-function [ traj ] = gentraj_vardamp( position0, target, u2 )
+function [ traj ] = gentraj_vardamp( x0, target, u2 )
 
 %%%% step 1: define robot
 % the maccepavd robot model has 8 state dimension
+min_preload = pi/6;
 
 if nargin > 0
-    position0 = position0;
+    x0 = x0;
     target = target;
     u2 = u2;
 else
-    position0 = 0;
+    q0 = 0;
     target = pi/4;
     u2 = pi/6;
+    
+    x0 = [q0;0; q0; min_preload;0;0  ];
 end
 
 
-param_act.ratio_load = 1;
+%param_act.ratio_load = 1;
 param_act.gear_d = 40;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;
@@ -37,12 +40,8 @@ dt = 0.02;
 t = 0:dt:T;
 N = T/dt + 1;
 %alpha = 0.7;
-min_preload = pi/6;
-x0 = zeros(6,1); 
-x0(1) = position0;
-x0(3) = position0;
-x0(4) = min_preload;
-x0(5) = 0;
+
+
 
 %%%% step 3: set cost function parameters
 

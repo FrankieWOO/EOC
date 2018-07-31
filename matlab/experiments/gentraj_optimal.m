@@ -17,7 +17,7 @@ else
 end
 
 
-param_act.ratio_load = 1;
+%param_act.ratio_load = 1;
 param_act.gear_d = 40;
 %param_act.Kd = 0.0212;
 %param_act.K1 = 1;

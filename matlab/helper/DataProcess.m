@@ -94,16 +94,19 @@ classdef DataProcess
         
         function stats = compute_trajs_stats(data)
             stats.accuracy_score = 0;
+            stats.accuracy_halt = 0;
             stats.avg_settle_time = 0;
             stats.total_Erege = 0;
             stats.total_Ein = 0;
             stats.pcnt_Erege = 0;
             for i=1:length(data)
                 stats.accuracy_score = stats.accuracy_score + data{i}.accuracy_score;
+                stats.accuracy_halt = stats.accuracy_halt + data{i}.accuracy_halt;
                 stats.avg_settle_time = stats.avg_settle_time + data{i}.settle_time;
                 stats.total_Erege = stats.total_Erege + data{i}.Erege;
             end
             stats.accuracy_score = stats.accuracy_score/length(data);
+            stats.accuracy_halt = stats.accuracy_halt/length(data);
             stats.avg_settle_time = stats.avg_settle_time/length(data);
         end
         
@@ -173,6 +176,42 @@ classdef DataProcess
             ylabel('power (W)')
             hold off
             
+        end
+        
+        function [p,v,acc,t,power_rege,segments,target_lines]=merge_traj_list(data, target_list, duration)
+            
+            p = [];
+            v = [];
+            acc = [];
+            t = [];
+            power_rege=[];
+            % merge data
+            segments = zeros(length(data),1);
+            time_end_ind = 0;
+            last_time_end = 0;
+            target_lines = [];
+            for i = 1:length(data)
+                try
+                    ind_end = findFirst(data{i}.header,duration)-1;
+                catch
+                    ind_end = length(data{i}.header);
+                end
+                if isnan(ind_end), ind_end = length(data{i}.header); end
+                p = [p;data{i}.p(1:ind_end)];
+                v = [v;data{i}.v(1:ind_end)];
+                acc = [acc;data{i}.acc(1:ind_end)];
+                t = [t;data{i}.header(1:ind_end)+last_time_end];
+                %last_time_end = last_time_end + data{i}.header(end);
+                last_time_end = last_time_end + duration;
+                
+                power_rege = [power_rege;data{i}.power_rege(1:ind_end)];
+                time_end_ind = time_end_ind + ind_end;
+                segments(i) = time_end_ind;
+                
+                
+                target_lines = [target_lines; ones(size(data{i}.p(1:ind_end)))*target_list(i)];
+                
+            end
         end
         
         % input: sequence of position
@@ -327,6 +366,21 @@ classdef DataProcess
             y = (x - target).^2;
             score = sum(dt*y);
         end
+        
+        function score = compute_accuracy_after_halt(traj, t, target)
+            p = traj.p;
+            
+            st = traj.settle_time;
+            st_ind = findFirst(t, st)-1;
+            if isnan(st_ind)
+                st_ind = length(t);
+            end
+            dt = mean(diff(t));
+            x = p(st_ind: min(st_ind+24,length(t)));
+            y = (x-target).^2;
+            score = sum(dt*y);
+        end
+        
     end
     
 end
