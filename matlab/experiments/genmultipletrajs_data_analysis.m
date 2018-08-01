@@ -94,18 +94,30 @@ grid on
 dd.Erege = dp.compute_Erege(dd.rege_current, dd.header);
 dd.power_rege=dp.compute_power_rege(dd.rege_current);
 figure
+subplot(2,1,1)
 hold on
 title('rege power')
 plot(dd.header, dd.power_rege)
 plot(ws1.traj_list{1}.tsim(1:end-1),ws1.traj_list{1}.power_rege)
 legend('recorded','predicted')
 hold off
+subplot(2,1,2)
+hold on
+title('velocity')
+plot(dd.header, dd.v)
+plot(ws1.traj_list{1}.tsim, ws1.traj_list{1}.xsim(2,:))
+legend('recorded','predicted')
+ylabel('velocity')
+hold off
+
+
 figure
 subplot(2,1,1)
 hold on
 plot(dd.header, dd.v)
 plot(ws1.traj_list{1}.tsim, ws1.traj_list{1}.xsim(2,:))
 legend('recorded','predicted')
+
 hold off
 subplot(2,1,2)
 plot(ws1.traj_list{1}.t(1:end-1), ws1.traj_list{1}.u(3,:))
@@ -120,3 +132,5 @@ dd.accuracy_score = dp.compute_accuracy_score(dd.p,dd.header,-0.7812)
 
 figure
 plot(dd.header, dd.servo1_position)
+
+
