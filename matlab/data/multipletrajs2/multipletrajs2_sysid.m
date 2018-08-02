@@ -1,4 +1,3 @@
-%function []=genmultipletrajs()
 %% load data
 cpath = pwd;
 datapath1 = [cpath,'/trajs/constant/record/'];
@@ -30,39 +29,44 @@ ws3 = load([cpath,'/trajs/optimal/optimal.mat']);
 %% process data
 Data = [data1;data2;data3];
 TargetList = [ws1.target_list;ws2.target_list;ws3.target_list];
+TrajList = [ws1.traj_list;ws2.traj_list;ws3.traj_list];
 for i = 1:length(Data)
     Data{i} = DataProcess.preprocess_single_traj(Data{i});
     Data{i}.accuracy_score = DataProcess.compute_accuracy_score(Data{i}.p, Data{i}.header, TargetList(i));
     Data{i}.accuracy_halt = DataProcess.compute_accuracy_after_halt(Data{i}, Data{i}.header, TargetList(i));
 end
 
+for i = 1:length(Data)
+    crop_time = Data{i}.header <= Data{i}.settle_time;
+    l = sum(crop_time);
+    Data{i}.p = Data{i}.p(1:l);
+    Data{i}.v = Data{i}.v(1:l);
+    Data{i}.acc=Data{i}.acc(1:l);
+    Data{i}.header=Data{i}.header(1:l);
+end
+
+for i=1:length(Data)
+    Data{i}.m1 = convert_sequence_time(TrajList{i}.xsim(3,:), TrajList{i}.tsim, Data{i}.header);
+    Data{i}.m2 = convert_sequence_time(TrajList{i}.xsim(4,:), TrajList{i}.tsim, Data{i}.header);
+    Data{i}.u3 = convert_sequence_time(TrajList{i}.usim(3,:), TrajList{i}.tsim(1:end-1), Data{i}.header);
+end
+
+actuator = ActMccpvd();
+
+for i=1:length(Data)
+    Data{i}.tau = actuator.torque(Data{i}.p, Data{i}.v, Data{i}.m1, Data{i}.m2, Data{i}.u3);
+end
+
 data1 = Data(1:length(data1));
 data2 = Data(length(data1)+1:length(data1)+length(data2));
 data3 = Data(length(data1)+length(data2)+1:end);
 
-%% compute smmary stats
-summary.data1 = DataProcess.compute_trajs_stats(data1);
-summary.data2 = DataProcess.compute_trajs_stats(data2);
-summary.data3 = DataProcess.compute_trajs_stats(data3);
-%%
-fprintf('---------| accuracy | avg. settle time | Erege |\n')
-fprintf('constant | %4.4f    | %4.4f            | %4.4f |\n',summary.data1.accuracy_score,summary.data1.avg_settle_time,summary.data1.total_Erege)
-fprintf('vary damp| %4.4f    | %4.4f            | %4.4f |\n',summary.data2.accuracy_score,summary.data2.avg_settle_time,summary.data2.total_Erege)
-fprintf('optimal  | %4.4f    | %4.4f            | %4.4f |\n',summary.data3.accuracy_score,summary.data3.avg_settle_time,summary.data3.total_Erege)
-
-%% plot
-DataProcess.plot_trajs(data1, ws1.target_list);
-DataProcess.plot_trajs(data2, ws2.target_list);
-DataProcess.plot_trajs(data3, ws3.target_list);
-
-
 %% debug preprocess 
 dp = DataProcess();
-%dd = dp.trim_head(data2{10});
-dd = Data{35};
-traj = ws2.traj_list{10};
+dd = dp.trim_head(data3{2});
+traj = ws3.traj_list{2};
 
-window_size = 3;
+%window_size = 3;
 %dd.p = dp.mavg_filter(dd.joint_position);
 %dd.p = dp.central_difference_smooth(dd.joint_position,5);
 %dd.v1 = filter( (1/4)*ones(1,4), 1, [0; diff(dd.p)./diff(dd.header)]);
@@ -95,57 +99,39 @@ grid on
 subplot(5,1,4)
 hold on
 plot(traj.tsim, traj.xsim(3,:))
-plot(traj.tsim(1:end-1), traj.usim(1,:))
-plot(dd.header, dd.servo1_position)
+plot(dd.header, dd.m1)
+%plot(dd.header, dd.servo1_position)
 hold off
 
 subplot(5,1,5)
 hold on
 plot(traj.tsim, traj.xsim(4,:))
-plot(traj.tsim(1:end-1), traj.usim(2,:))
+plot(dd.header, dd.m2)
 hold off
+%% 
+X =[];Y=[];
+for i =1:length(Data)
+   X = [X; Data{i}.acc, Data{i}.v];
+   Y = [Y;Data{i}.tau];
+end
+
+paras1  = lsqnonneg(X,Y);
+
+X2 = [X, ones(size(X,1),1)];
+paras2 = lsqnonneg(X2,Y);
 %%
-
-dd.Erege = dp.compute_Erege(dd.rege_current, dd.header);
-dd.power_rege=dp.compute_power_rege(dd.rege_current);
-figure
-subplot(2,1,1)
-hold on
-title('rege power')
-plot(dd.header, dd.power_rege)
-plot(traj.tsim(1:end-1),traj.power_rege)
-legend('recorded','predicted')
-hold off
-subplot(2,1,2)
-hold on
-title('velocity')
-plot(dd.header, dd.v)
-plot(traj.tsim, traj.xsim(2,:))
-legend('recorded','predicted')
-ylabel('velocity')
-hold off
-
-
-figure
-subplot(2,1,1)
-hold on
-plot(dd.header, dd.v)
-plot(traj.tsim, traj.xsim(2,:))
-legend('recorded','predicted')
-
-hold off
-subplot(2,1,2)
-plot(traj.t(1:end-1), traj.u(3,:))
+robot_param.inertia = paras1(1);
+robot_param.Df = paras1(2);
+robot = Mccpvd1dofModel(robot_param);
+f = @(x,u)robot.dynamics_with_jacobian_fd(x,u);
+simpara.dt = 0.001;
+simpara.solver = 'rk4';
+xsim = simulate_feedforward(traj.x(:,1),f,traj.usim,simpara);
 
 %%
-
-dd.accuracy_score = dp.compute_accuracy_score(dd.p,dd.header,-0.7812)
-
-
-%% compute stats
-% accuracy, avg settle time, rege E, input E
-
-
-
-
-
+figure
+hold on
+plot(traj.tsim,traj.xsim(1,:))
+plot(traj.tsim,xsim(1,:))
+plot(dd.header, dd.p)
+hold off

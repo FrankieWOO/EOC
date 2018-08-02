@@ -18,7 +18,7 @@ for iter = 1:length(target_list)
     %q0 = traj.xsim(1,end); % assume we can get to the target
     x0 = traj.xsim(:,end);
 end
-%%
+%% use simulated motor trajectory as desired tracking trajectory for servos
 
 for iter = 1:length(traj_list)
     traj_list{iter}.u(1:2,:) = traj_list{iter}.x(3:4,1:end-1);

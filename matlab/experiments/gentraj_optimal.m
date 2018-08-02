@@ -27,8 +27,8 @@ param_act.gear_d = 40;
 %param_act.Ks = 500;
 %param_act.J1 = 0.001;
 %param_act.J2 = 0.001;
-robot_param.inertia = 3.19e-3;
-robot_param.Df = 0.004;
+robot_param.inertia = 3.6e-3;
+robot_param.Df = 7.7e-3;
 robot_model = Mccpvd1dofModel(robot_param, param_act);
 
 

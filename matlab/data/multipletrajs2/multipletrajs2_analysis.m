@@ -33,7 +33,8 @@ TargetList = [ws1.target_list;ws2.target_list;ws3.target_list];
 for i = 1:length(Data)
     Data{i} = DataProcess.preprocess_single_traj(Data{i});
     Data{i}.accuracy_score = DataProcess.compute_accuracy_score(Data{i}.p, Data{i}.header, TargetList(i));
-    Data{i}.accuracy_halt = DataProcess.compute_accuracy_after_halt(Data{i}, Data{i}.header, TargetList(i));
+    Data{i}.accuracy_halt = DataProcess.compute_accuracy_after_halt(Data{i}, TargetList(i));
+    Data{i}.overshot = DataProcess.compute_overshot(Data{i}, TargetList(i));
 end
 
 data1 = Data(1:length(data1));
@@ -47,10 +48,10 @@ summary.data1 = DataProcess.compute_trajs_stats(data1);
 summary.data2 = DataProcess.compute_trajs_stats(data2);
 summary.data3 = DataProcess.compute_trajs_stats(data3);
 %%
-fprintf('---------| accuracy | accu. halt. | avg. settle time | Erege |\n')
-fprintf('constant | %4.4f    | %4.8f | %4.4f            | %4.4f |\n',summary.data1.accuracy_score,summary.data1.accuracy_halt,summary.data1.avg_settle_time,summary.data1.total_Erege)
-fprintf('vary damp| %4.4f    | %4.8f | %4.4f            | %4.4f |\n',summary.data2.accuracy_score,summary.data2.accuracy_halt,summary.data2.avg_settle_time,summary.data2.total_Erege)
-fprintf('optimal  | %4.4f    | %4.8f | %4.4f            | %4.4f |\n',summary.data3.accuracy_score,summary.data3.accuracy_halt,summary.data3.avg_settle_time,summary.data3.total_Erege)
+fprintf('---------| accuracy | accu. halt. | overshot | avg. settle time | Erege |\n')
+fprintf('constant | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |\n',summary.data1.accuracy_score,summary.data1.accuracy_halt,summary.data1.avg_overshot,summary.data1.avg_settle_time,summary.data1.total_Erege)
+fprintf('vary damp| %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |\n',summary.data2.accuracy_score,summary.data2.accuracy_halt,summary.data2.avg_overshot,summary.data2.avg_settle_time,summary.data2.total_Erege)
+fprintf('optimal  | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |\n',summary.data3.accuracy_score,summary.data3.accuracy_halt,summary.data3.avg_overshot,summary.data3.avg_settle_time,summary.data3.total_Erege)
 
 %% plot
 DataProcess.plot_trajs(data1, ws1.target_list);

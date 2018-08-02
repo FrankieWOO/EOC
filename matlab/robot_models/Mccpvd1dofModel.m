@@ -52,12 +52,12 @@ classdef Mccpvd1dofModel
         %%%% dynamical properties
         % Fan: estimated by data  %calculated inertia: 0.00135
         % 
-        inertia = 3.19e-3
+        inertia = 3.6e-3 %3.19e-3
         inertia_l = 0.00135
         % frictions
         % viscous friction
         % Fan: 0.0022 estimated by data;
-        Df = 0.0022
+        Df = 0.0077
         % coulomb friction
         coulomb_friction = 0;
         % gravity constant

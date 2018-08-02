@@ -96,6 +96,7 @@ classdef DataProcess
             stats.accuracy_score = 0;
             stats.accuracy_halt = 0;
             stats.avg_settle_time = 0;
+            stats.avg_overshot = 0;
             stats.total_Erege = 0;
             stats.total_Ein = 0;
             stats.pcnt_Erege = 0;
@@ -104,10 +105,12 @@ classdef DataProcess
                 stats.accuracy_halt = stats.accuracy_halt + data{i}.accuracy_halt;
                 stats.avg_settle_time = stats.avg_settle_time + data{i}.settle_time;
                 stats.total_Erege = stats.total_Erege + data{i}.Erege;
+                stats.avg_overshot = stats.avg_overshot + data{i}.overshot;
             end
             stats.accuracy_score = stats.accuracy_score/length(data);
             stats.accuracy_halt = stats.accuracy_halt/length(data);
             stats.avg_settle_time = stats.avg_settle_time/length(data);
+            stats.avg_overshot = stats.avg_overshot/length(data);
         end
         
         % plot a list of trajs
@@ -315,7 +318,7 @@ classdef DataProcess
             [~, ind] = max(v);
             
             for k = ind:length(t)
-                if (abs(v(k)) < 0.1) && (abs(acc(k)) < 1)
+                if (abs(v(k)) < 0.1) && (abs(acc(k)) < 3)
                     st = t(k);
                     for j=k+1:min(k+30,length(t))
                         if (abs(v(k)) < 0.1) 
@@ -367,9 +370,9 @@ classdef DataProcess
             score = sum(dt*y);
         end
         
-        function score = compute_accuracy_after_halt(traj, t, target)
+        function score = compute_accuracy_after_halt(traj, target)
             p = traj.p;
-            
+            t = traj.header;
             st = traj.settle_time;
             st_ind = findFirst(t, st)-1;
             if isnan(st_ind)
@@ -381,6 +384,24 @@ classdef DataProcess
             score = sum(dt*y);
         end
         
+        function out = compute_overshot(traj, target)
+            settle_time = traj.settle_time;
+            t = traj.header;
+            shot_time_ind = 1;
+            offset = traj.p - target;
+            
+
+            
+            for i=2:length(t)
+                if offset(i)*offset(i-1) < 0
+                    shot_time_ind = i;
+                    break;
+                end
+            end
+            settle_time_ind = findFirst(t, settle_time)-1;
+            if isnan(settle_time_ind), settle_time_ind = length(t);end
+            out = sum(offset(shot_time_ind:settle_time_ind).^2);
+        end
     end
     
 end
