@@ -11,7 +11,7 @@ else
     
     x0 = zeros(6,1); 
     x0(4) = min_preload;
-    w_r = 5e2;
+    w_r = 0;
     target = pi/4;
     
 end

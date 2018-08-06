@@ -9,7 +9,7 @@ traj_list = cell(num_targets,1);
 x0 = [init_position; 0; init_position; pi/6; 0; 0];
 
 if ~exist('wr','var')
-    wr = 5e2;
+    wr = 0;
 end
 
 for iter = 1:length(target_list)

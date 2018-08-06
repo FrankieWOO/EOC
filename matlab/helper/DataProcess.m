@@ -86,6 +86,17 @@ classdef DataProcess
             
         end
         
+        function [data] = preprocess_single_traj2(data)
+            data = DataProcess.trim_head(data);
+            data.p = DataProcess.central_difference_smooth(data.joint_position,5);
+            data.v = DataProcess.compute_velocity_centraldiff(data.p, data.header);
+            data.acc = DataProcess.compute_accel_centraldiff(data.v, data.header);
+            data.power_rege = data.rege_current/1000;
+            data.Erege = DataProcess.integrate(data.power_rege, data.header);
+            data.settle_time = DataProcess.settle_time(data.v, data.header);
+            
+        end
+        
         function [] = plot_single_traj(data)
             
             plot(data.header, data.joint_position)
@@ -100,17 +111,23 @@ classdef DataProcess
             stats.total_Erege = 0;
             stats.total_Ein = 0;
             stats.pcnt_Erege = 0;
-            for i=1:length(data)
-                stats.accuracy_score = stats.accuracy_score + data{i}.accuracy_score;
-                stats.accuracy_halt = stats.accuracy_halt + data{i}.accuracy_halt;
-                stats.avg_settle_time = stats.avg_settle_time + data{i}.settle_time;
-                stats.total_Erege = stats.total_Erege + data{i}.Erege;
-                stats.avg_overshot = stats.avg_overshot + data{i}.overshot;
+            stats.total_kinetic = 0;
+            for i=1:size(data,1)
+                for j=1:size(data,2)
+                stats.accuracy_score = stats.accuracy_score + data{i,j}.accuracy_score;
+                stats.accuracy_halt = stats.accuracy_halt + data{i,j}.accuracy_halt;
+                stats.avg_settle_time = stats.avg_settle_time + data{i,j}.settle_time;
+                stats.total_Erege = stats.total_Erege + data{i,j}.Erege;
+                stats.total_kinetic = stats.total_kinetic + data{i,j}.max_kinetic;
+                stats.avg_overshot = stats.avg_overshot + data{i,j}.overshot;
+                end
             end
-            stats.accuracy_score = stats.accuracy_score/length(data);
-            stats.accuracy_halt = stats.accuracy_halt/length(data);
-            stats.avg_settle_time = stats.avg_settle_time/length(data);
-            stats.avg_overshot = stats.avg_overshot/length(data);
+            stats.accuracy_score = stats.accuracy_score/(i*j);
+            stats.accuracy_halt = stats.accuracy_halt/(i*j);
+            stats.avg_settle_time = stats.avg_settle_time/(i*j);
+            stats.avg_overshot = stats.avg_overshot/(i*j);
+            stats.avg_Erege = stats.total_Erege/(i*j);
+            stats.avg_kinetic = stats.total_kinetic/(i*j);
         end
         
         % plot a list of trajs
@@ -320,8 +337,8 @@ classdef DataProcess
             for k = ind:length(t)
                 if (abs(v(k)) < 0.1) && (abs(acc(k)) < 3)
                     st = t(k);
-                    for j=k+1:min(k+30,length(t))
-                        if (abs(v(k)) < 0.1) 
+                    for j=k+1:min(k+25,length(t))
+                        if (abs(v(k)) < 0.2) 
                             halt = true;
                         else
                             halt = false;
@@ -379,28 +396,41 @@ classdef DataProcess
                 st_ind = length(t);
             end
             dt = mean(diff(t));
-            x = p(st_ind: min(st_ind+24,length(t)));
+            if length(t)-st_ind < 24
+                x = p(end-24:end);
+            else
+                x = p(st_ind: st_ind+24);
+            
+            end
             y = (x-target).^2;
             score = sum(dt*y);
         end
         
         function out = compute_overshot(traj, target)
-            settle_time = traj.settle_time;
             t = traj.header;
-            shot_time_ind = 1;
+            settle_time = traj.settle_time;
+            settle_time_ind = findFirst(t, settle_time)-1;
+            if isnan(settle_time_ind), settle_time_ind = length(t);end
+            
+            
+            shot_time_ind = 0;
             offset = traj.p - target;
             
 
             
-            for i=2:length(t)
+            for i=2:settle_time_ind
                 if offset(i)*offset(i-1) < 0
                     shot_time_ind = i;
                     break;
                 end
             end
-            settle_time_ind = findFirst(t, settle_time)-1;
-            if isnan(settle_time_ind), settle_time_ind = length(t);end
-            out = sum(offset(shot_time_ind:settle_time_ind).^2);
+            
+            if shot_time_ind == 0
+                out = 0;
+            else
+                dt = mean(diff(t(shot_time_ind:settle_time_ind))) ;
+                out = sum(offset(shot_time_ind:settle_time_ind).^2*dt);
+            end
         end
     end
     
