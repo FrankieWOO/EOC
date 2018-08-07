@@ -1,0 +1,5 @@
+experiment, overshot, settle time, rege energy, Kinetic, pcnt 
+constant, 0.0636, 1.1086, 0.0074, 0.0940, 0.0784 
+vary damp, 0.0134, 0.9664, 0.0035, 0.0489, 0.0705 
+fix damp, 0.0038, 0.8085, 0.0038, 0.0596, 0.0634 
+optimal, 0.0030, 0.8075, 0.0041, 0.0512, 0.0809 

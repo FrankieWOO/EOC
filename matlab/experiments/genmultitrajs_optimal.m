@@ -37,18 +37,18 @@ save([folderpath, 'optimal.mat'])
 disp('saved')
 
 %%
-datapath = [folderpath,'record/'];
-
-%%
-files = dir([datapath,'/*.csv']);
-data = cell(length(files),1);
-for i=1:length(files)
-    data{i,1} = table2struct(readtable([datapath,'record_traj',num2str(i),'.csv']),'ToScalar',true);
-    
-end
-%%
-q=[];
-for i=1:length(data)
-    q = [q; data{i}.joint_position];
-end
-plot(q)
+% datapath = [folderpath,'record/'];
+% 
+% %%
+% files = dir([datapath,'/*.csv']);
+% data = cell(length(files),1);
+% for i=1:length(files)
+%     data{i,1} = table2struct(readtable([datapath,'record_traj',num2str(i),'.csv']),'ToScalar',true);
+%     
+% end
+% %%
+% q=[];
+% for i=1:length(data)
+%     q = [q; data{i}.joint_position];
+% end
+% plot(q)
