@@ -12,15 +12,15 @@
 % out: 
 %     x,u     - state,action trajectory 
 % 
-function [x,u] = simulate_feedback_time_indexed ( x0, f, pi, p )
+function [x,u] = simulate_feedback_time_indexed ( x0, f, policy, p )
 
 %dt= p.dt;
 N = p.N;
 x = nan(size(x0,1),N); x(:,1)=x0; % initialise x
-u = nan(size(pi(x0,1),1),N-1);      % initialise u
+u = nan(size(policy(x0,1),1),N-1);      % initialise u
 % simulate
 for n=1:N-1
-	u(:,n  ) = pi(x(:,n),n);                 % get next action 
+	u(:,n  ) = policy(x(:,n),n);                 % get next action 
 	%x(:,n+1) = x(:,n) + dt*f(x(:,n),u(:,n)); % euler step
     x(:,n+1) = simulate_step ( f, x(:,n), u(:,n), p );
 end

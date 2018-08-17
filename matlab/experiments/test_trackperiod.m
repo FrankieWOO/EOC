@@ -1,3 +1,6 @@
+%% optimise a single period to track a given trajectory.
+% use feedback control to make the tracking converge after few periods.
+
 
 amplitude = 0.7;
 T = 1.2;
@@ -94,7 +97,7 @@ result = ILQRController.ilqr(f, j, dt, N, x0, u0, opt_param);
 % axis([0 T -inf inf ])
 %%
 % run controller on plant
-N_run = 3;
+N_run = 10;
 
 
 ppi = []; ppi.xn = [repmat(result.x(:,1:end-1),1,N_run), result.x(:,end)]; 
@@ -105,9 +108,14 @@ ps_feedback.solver = 'rk4'; ps_feedback.dt = dt; ps_feedback.N = Nu*N_run+1;
 [x_simpi, u_simpi] = simulate_feedback_time_indexed ( x0, f, policy, ps_feedback );
 t_simpi = 0:dt:(T*N_run);
 x_ref_simpi = [repmat(x_ref(:,1:end-1),1,N_run), x_ref(:,end)];
+
 %%
-plot_tracktraj(t_simpi, [x_simpi(1,:); x_ref_simpi(1,:)], t_simpi(1:end-1),...
-    u_simpi(1,:), x_simpi(3,:), u_simpi(2,:), x_simpi(4,:), u_simpi(3,:))
+
+figure
+hold on
+plot(t_simpi, x_simpi(1,:))
+plot(t_simpi, x_ref_simpi(1,:))
+hold off
 
 %%
 tjfparam.x_ref = x_ref; tjfparam.T = T;

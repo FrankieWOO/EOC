@@ -58,6 +58,17 @@ DataProcess.plot_trajs(data3, ws3.target_list);
 dp = DataProcess();
 dd = dp.trim_head(data2{1});
 
+p1 = dp.exp_filter(dd.joint_position, 0.75);
+v1 = gradient(p1)./gradient(dd.header);
+figure
+subplot(2,1,1)
+plot(p1)
+hold on
+plot(v1)
+hold off
+subplot(2,1,2)
+plot(dd.rege_current)
+%%
 window_size = 3;
 %dd.p = dp.mavg_filter(dd.joint_position);
 dd.p = dp.central_difference_smooth(dd.joint_position,5);
