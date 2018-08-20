@@ -49,6 +49,8 @@ ws4 = load([cpath,'/trajs/optimal/optimal.mat']);
 inertia = 3.6e-3;
 Data = [data1;data2;data3;data4];
 TargetList = [ws1.target_list;ws2.target_list;ws3.target_list;ws4.target_list];
+TrajList = [ws1.traj_list; ws2.traj_list; ws3.traj_list; ws4.traj_list];
+
 for i = 1:size(Data,1)
     for j = 1:size(Data,2)
     Data{i,j} = DataProcess.preprocess_single_traj2(Data{i,j});
@@ -56,6 +58,8 @@ for i = 1:size(Data,1)
     Data{i,j}.accuracy_halt = DataProcess.compute_accuracy_after_halt(Data{i,j}, TargetList(i));
     Data{i,j}.overshot = DataProcess.compute_overshot(Data{i,j}, TargetList(i));
     Data{i,j}.max_kinetic = inertia*(max(abs(Data{i,j}.v)))^2/2;
+    Data{i,j}.Ein = TrajList{i,1}.Ein;
+    Data{i,j}.predict_Erege = TrajList{i,1}.Erege;
     end
 end
 data1 = Data(1:size(data1,1),:);
