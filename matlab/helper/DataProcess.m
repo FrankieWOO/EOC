@@ -112,6 +112,8 @@ classdef DataProcess
             stats.total_Ein = 0;
             stats.pcnt_Erege = 0;
             stats.total_kinetic = 0;
+            stats.Ein = 0;
+            stats.predict_Erege=0;
             for i=1:size(data,1)
                 for j=1:size(data,2)
                 stats.accuracy_score = stats.accuracy_score + data{i,j}.accuracy_score;
@@ -120,6 +122,8 @@ classdef DataProcess
                 stats.total_Erege = stats.total_Erege + data{i,j}.Erege;
                 stats.total_kinetic = stats.total_kinetic + data{i,j}.max_kinetic;
                 stats.avg_overshot = stats.avg_overshot + data{i,j}.overshot;
+                stats.Ein = stats.Ein + data{i,j}.Ein;
+                stats.predict_Erege = stats.predict_Erege + data{i,j}.predict_Erege;
                 end
             end
             stats.accuracy_score = stats.accuracy_score/(i*j);
@@ -129,6 +133,8 @@ classdef DataProcess
             stats.avg_Erege = stats.total_Erege/(i*j);
             stats.avg_kinetic = stats.total_kinetic/(i*j);
             stats.pcnt_Erege = stats.avg_Erege/stats.avg_kinetic;
+            stats.avg_Ein = stats.Ein/(i*j);
+            stats.avg_predict_Erege = stats.predict_Erege/(i*j);
         end
         
         % plot a list of trajs
