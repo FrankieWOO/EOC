@@ -73,8 +73,8 @@ task = mccpvd1_reach(robot_model, cost_param);
 % --- 
 % c = c + self.w_r* (u(3,:)-0.5).^2;
 % ---
-j = @(x,u,t)task.j_spf_rege(x,u,t);
-
+%j = @(x,u,t)task.j_spf_rege(x,u,t);
+j = @(x,u,t)task.j_spf(x,u,t);
 %j2 = @(x,u,t)task2.j_tf_elec(x,u,t);
 %j3 = @(x,u,t)task2.j_tf_elec_rege(x,u,t);
 %j = @(x,u,t)task.j_noutmech(x,u,t);

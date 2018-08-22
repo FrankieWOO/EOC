@@ -41,7 +41,7 @@ cost_param = [];
 cost_param.w_e = 1e0;
 cost_param.w_t = 1e3;
 cost_param.w_tf = cost_param.w_t*dt;
-cost_param.w_r = 0;
+cost_param.w_r = 0.5e2;
 %cost_param.alpha = alpha;
 cost_param.epsilon = 1e-6;
 cost_param.T = T;
@@ -57,7 +57,10 @@ task = mccpvd1_reach(robot_model, cost_param);
 %cost_param2.w_e = cost_param.w_e*(1e-3);
 %task2 = mccpvd1_reach(robot_model, cost_param2);
 %j1 = @(x,u,t)task1.j_effort(x,u,t);
-j = @(x,u,t)task.j_spf_rege(x,u,t);
+j = @(x,u,t)task.j_spf(x,u,t);
+
+j2 = @(x,u,t)task.j_spf_rege(x,u,t);
+
 
 %j2 = @(x,u,t)task2.j_tf_elec(x,u,t);
 %j3 = @(x,u,t)task2.j_tf_elec_rege(x,u,t);

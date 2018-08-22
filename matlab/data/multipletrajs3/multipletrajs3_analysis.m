@@ -75,18 +75,18 @@ summary.data3 = DataProcess.compute_trajs_stats(data3);
 summary.data4 = DataProcess.compute_trajs_stats(data4);
 
 %%
-fprintf('---------| accuracy | accu. halt. | overshot | avg. settle time | Erege | Kinetic | pcnt |\n')
-fprintf('constant | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |\n',summary.data1.accuracy_score,summary.data1.accuracy_halt,summary.data1.avg_overshot,summary.data1.avg_settle_time,summary.data1.avg_Erege,summary.data1.avg_kinetic,summary.data1.pcnt_Erege)
-fprintf('vary damp| %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |\n',summary.data2.accuracy_score,summary.data2.accuracy_halt,summary.data2.avg_overshot,summary.data2.avg_settle_time,summary.data2.avg_Erege,summary.data2.avg_kinetic,summary.data2.pcnt_Erege)
-fprintf('fix damp | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |\n',summary.data3.accuracy_score,summary.data3.accuracy_halt,summary.data3.avg_overshot,summary.data3.avg_settle_time,summary.data3.avg_Erege,summary.data3.avg_kinetic,summary.data3.pcnt_Erege)
-fprintf('optimal  | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |\n',summary.data4.accuracy_score,summary.data4.accuracy_halt,summary.data4.avg_overshot,summary.data4.avg_settle_time,summary.data4.avg_Erege,summary.data4.avg_kinetic,summary.data4.pcnt_Erege)
+fprintf('---------| accuracy | accu. halt. | overshot | avg. settle time | Erege | Kinetic | pcnt | Ein | pcnt |\n')
+fprintf('constant | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |%4.4f |%4.4f |\n',summary.data1.accuracy_score,summary.data1.accuracy_halt,summary.data1.avg_overshot,summary.data1.avg_settle_time,summary.data1.avg_Erege,summary.data1.avg_kinetic,summary.data1.ratio_kinetic*100,summary.data1.avg_Ein,summary.data1.ratio_Ein*100)
+fprintf('vary damp| %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |%4.4f |%4.4f |\n',summary.data2.accuracy_score,summary.data2.accuracy_halt,summary.data2.avg_overshot,summary.data2.avg_settle_time,summary.data2.avg_Erege,summary.data2.avg_kinetic,summary.data2.ratio_kinetic*100,summary.data2.avg_Ein,summary.data2.ratio_Ein*100)
+fprintf('fix damp | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |%4.4f |%4.4f |\n',summary.data3.accuracy_score,summary.data3.accuracy_halt,summary.data3.avg_overshot,summary.data3.avg_settle_time,summary.data3.avg_Erege,summary.data3.avg_kinetic,summary.data3.ratio_kinetic*100,summary.data3.avg_Ein,summary.data3.ratio_Ein*100)
+fprintf('optimal  | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |%4.4f |%4.4f |\n',summary.data4.accuracy_score,summary.data4.accuracy_halt,summary.data4.avg_overshot,summary.data4.avg_settle_time,summary.data4.avg_Erege,summary.data4.avg_kinetic,summary.data4.ratio_kinetic*100,summary.data4.avg_Ein,summary.data4.ratio_Ein*100)
 
 fileID = fopen('multireach_summary.csv','w');
-fprintf(fileID,'experiment, overshot, settle time, rege energy, Kinetic, pcnt \n');
-fprintf(fileID,'constant, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data1.avg_overshot,summary.data1.avg_settle_time,summary.data1.avg_Erege,summary.data1.avg_kinetic,summary.data1.pcnt_Erege*100);
-fprintf(fileID,'vary damp, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data2.avg_overshot,summary.data2.avg_settle_time,summary.data2.avg_Erege,summary.data2.avg_kinetic,summary.data2.pcnt_Erege*100);
-fprintf(fileID,'fix damp, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data3.avg_overshot,summary.data3.avg_settle_time,summary.data3.avg_Erege,summary.data3.avg_kinetic,summary.data3.pcnt_Erege*100);
-fprintf(fileID,'optimal, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data4.avg_overshot,summary.data4.avg_settle_time,summary.data4.avg_Erege,summary.data4.avg_kinetic,summary.data4.pcnt_Erege*100);
+fprintf(fileID,'experiment, overshot, settle time, rege energy, Kinetic, ratio_Kinetic, Ein, ratio_Ein \n');
+fprintf(fileID,'constant, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data1.avg_overshot,summary.data1.avg_settle_time,summary.data1.avg_Erege,summary.data1.avg_kinetic,summary.data1.ratio_kinetic*100,summary.data1.avg_Ein,summary.data1.ratio_Ein*100);
+fprintf(fileID,'vary damp, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f,%4.4f, %4.4f \n',summary.data2.avg_overshot,summary.data2.avg_settle_time,summary.data2.avg_Erege,summary.data2.avg_kinetic,summary.data2.ratio_kinetic*100,summary.data2.avg_Ein,summary.data2.ratio_Ein*100);
+fprintf(fileID,'fix damp, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f,%4.4f, %4.4f \n',summary.data3.avg_overshot,summary.data3.avg_settle_time,summary.data3.avg_Erege,summary.data3.avg_kinetic,summary.data3.ratio_kinetic*100,summary.data3.avg_Ein,summary.data3.ratio_Ein*100);
+fprintf(fileID,'optimal, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f,%4.4f, %4.4f \n',summary.data4.avg_overshot,summary.data4.avg_settle_time,summary.data4.avg_Erege,summary.data4.avg_kinetic,summary.data4.ratio_kinetic*100,summary.data4.avg_Ein,summary.data4.ratio_Ein*100);
 
 fclose(fileID);
 %% plot
@@ -148,5 +148,8 @@ end
 xlabel('time (s)')
 ylabel('power (W)')
 hold off
+
+%%
+
 
 

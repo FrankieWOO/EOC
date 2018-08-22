@@ -261,13 +261,22 @@ classdef mccpvd1_reach
             ce = (self.robot_model.spring_force(x,u)).^2;
            
             c = c1*self.w_t  + ce*self.w_e + sum(u.^2,1) * self.epsilon;
+            
+            c = c + self.w_r* (u(3,:)-0.5).^2;
+            
         end
         function c = costr_spf_rege(self, x, u)
-            c = self.costr_spf(x, u);
-            %p_rege = self.robot_model.power_rege(x,u);
-            %c = c - p_rege*self.w_r;
-            c = c + self.w_r* (u(3,:)-0.5).^2;
+            c1 = (x(1) - self.target).^2;
+            ce = (self.robot_model.spring_force(x,u)).^2;
+           
+            c = c1*self.w_t  + ce*self.w_e + sum(u.^2,1) * self.epsilon;
+            
+            
+            p_rege = self.robot_model.power_rege(x,u);
+            c = c - p_rege*self.w_r;
+            %c = c + self.w_r* (u(3,:)-0.5).^2;
         end
+        
         function c = costr_effort_rege(self, x,u)
             %error = x(1:2) - self.target_q;
             %c1 = norm(error, 2);

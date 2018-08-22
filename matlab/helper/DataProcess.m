@@ -132,9 +132,12 @@ classdef DataProcess
             stats.avg_overshot = stats.avg_overshot/(i*j);
             stats.avg_Erege = stats.total_Erege/(i*j);
             stats.avg_kinetic = stats.total_kinetic/(i*j);
-            stats.pcnt_Erege = stats.avg_Erege/stats.avg_kinetic;
+            
             stats.avg_Ein = stats.Ein/(i*j);
             stats.avg_predict_Erege = stats.predict_Erege/(i*j);
+            
+            stats.ratio_kinetic = stats.avg_Erege/stats.avg_kinetic;
+            stats.ratio_Ein = stats.avg_Erege/stats.avg_Ein;
         end
         
         % plot a list of trajs
