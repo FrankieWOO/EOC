@@ -83,7 +83,7 @@ fprintf('optimal  | %4.4f    | %4.8f | %4.4f| %4.4f | %4.4f |%4.4f |%4.4f |\n',s
 
 fileID = fopen('multireach_summary.csv','w');
 fprintf(fileID,'experiment, overshot, settle time, rege energy, Kinetic, pcnt \n');
-fprintf(fileID,'constant, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data1.avg_overshot,summary.data1.avg_settle_time,summary.data1.avg_Erege,summary.data1.avg_kinetic,summary.data1.pcnt_Erege*100);
+fprintf(fileID,'constant, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data1.avg_overshot,summary.data1.avg_settle_time,summary.data1.avg_Erege,,);
 fprintf(fileID,'vary damp, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data2.avg_overshot,summary.data2.avg_settle_time,summary.data2.avg_Erege,summary.data2.avg_kinetic,summary.data2.pcnt_Erege*100);
 fprintf(fileID,'fix damp, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data3.avg_overshot,summary.data3.avg_settle_time,summary.data3.avg_Erege,summary.data3.avg_kinetic,summary.data3.pcnt_Erege*100);
 fprintf(fileID,'optimal, %4.4f, %4.4f, %4.4f, %4.4f, %4.4f \n',summary.data4.avg_overshot,summary.data4.avg_settle_time,summary.data4.avg_Erege,summary.data4.avg_kinetic,summary.data4.pcnt_Erege*100);
@@ -100,7 +100,7 @@ ntrajs2plot = 5;
 [p2,v2,acc2,t2,power_rege2,segments2,target_lines2]=DataProcess.merge_traj_list(data2(1:ntrajs2plot,1), ws2.target_list(1:ntrajs2plot), 1.5);
 [p3,v3,acc3,t3,power_rege3,segments3,target_lines3]=DataProcess.merge_traj_list(data3(1:ntrajs2plot,1), ws3.target_list(1:ntrajs2plot), 1.5);
 [p4,v4,acc4,t4,power_rege4,segments4,target_lines4]=DataProcess.merge_traj_list(data4(1:ntrajs2plot,1), ws4.target_list(1:ntrajs2plot), 1.5);
-
+%%
 duration=1.5;
 figure
 subplot(3,1,1)
@@ -134,12 +134,22 @@ xlabel('time (s)')
 ylabel('velocity (rad/s)')
 hold off
 
+dt1 = diff(t1);
+dt1 = mean(dt1(2:end));
+dt2 = diff(t2);
+dt2 = mean(dt2(2:end));
+dt3 = diff(t3);
+dt3 = mean(dt3(2:end));
+dt4 = diff(t4);
+dt4 = mean(dt4(2:end));
+
+
 subplot(3,1,3)
 hold on
-plot(t1, power_rege1,'LineWidth', 1, 'LineStyle','--')
-plot(t2, power_rege2,'LineWidth', 1)
-plot(t3, power_rege3,'LineWidth', 1, 'LineStyle','--', 'Color', [1,0.6,0.6])
-plot(t4, power_rege4,'LineWidth', 1)
+plot(t1, cumsum(power_rege1*dt1),'LineWidth', 1, 'LineStyle','--')
+plot(t2, cumsum(power_rege2*dt2),'LineWidth', 1)
+plot(t3, cumsum(power_rege3*dt3),'LineWidth', 1, 'LineStyle','--', 'Color', [1,0.6,0.6])
+plot(t4, cumsum(power_rege4*dt4),'LineWidth', 1)
 
 yL = get(gca, 'YLim');
 for k=1:length(segments1)

@@ -104,37 +104,49 @@ classdef DataProcess
         
         
         function stats = compute_trajs_stats(data)
-            stats.accuracy_score = 0;
-            stats.accuracy_halt = 0;
-            stats.avg_settle_time = 0;
-            stats.avg_overshot = 0;
-            stats.total_Erege = 0;
-            stats.total_Ein = 0;
-            stats.pcnt_Erege = 0;
-            stats.total_kinetic = 0;
-            stats.Ein = 0;
-            stats.predict_Erege=0;
-            for i=1:size(data,1)
-                for j=1:size(data,2)
-                stats.accuracy_score = stats.accuracy_score + data{i,j}.accuracy_score;
-                stats.accuracy_halt = stats.accuracy_halt + data{i,j}.accuracy_halt;
-                stats.avg_settle_time = stats.avg_settle_time + data{i,j}.settle_time;
-                stats.total_Erege = stats.total_Erege + data{i,j}.Erege;
-                stats.total_kinetic = stats.total_kinetic + data{i,j}.max_kinetic;
-                stats.avg_overshot = stats.avg_overshot + data{i,j}.overshot;
-                stats.Ein = stats.Ein + data{i,j}.Ein;
-                stats.predict_Erege = stats.predict_Erege + data{i,j}.predict_Erege;
+            Ntrials = size(data,2);
+            stats.accuracy_score = zeros(1,Ntrials);
+            stats.accuracy_halt = zeros(1,Ntrials);
+            stats.settle_time = zeros(1,Ntrials);
+            stats.overshot = zeros(1,Ntrials);
+            stats.Erege = zeros(1,Ntrials);
+            stats.Ein = zeros(1,Ntrials);
+            stats.pcnt_Erege = zeros(1,Ntrials);
+            stats.kinetic = zeros(1,Ntrials);
+            %stats.Ein = 0;
+            stats.predict_Erege = zeros(1,Ntrials);
+            for j=1:size(data,2)
+                for i=1:size(data,1)
+                stats.accuracy_score(j) = stats.accuracy_score(j) + data{i,j}.accuracy_score;
+                stats.accuracy_halt(j) = stats.accuracy_halt(j) + data{i,j}.accuracy_halt;
+                stats.settle_time(j) = stats.settle_time(j) + data{i,j}.settle_time;
+                stats.Erege(j) = stats.Erege(j) + data{i,j}.Erege;
+                stats.kinetic(j) = stats.kinetic(j) + data{i,j}.max_kinetic;
+                stats.overshot(j) = stats.overshot(j) + data{i,j}.overshot;
+                stats.Ein(j) = stats.Ein(j) + data{i,j}.Ein;
+                stats.predict_Erege(j) = stats.predict_Erege(j) + data{i,j}.predict_Erege;
                 end
+                stats.accuracy_score(j) = stats.accuracy_score(j)/i;
+                stats.accuracy_halt(j) = stats.accuracy_halt(j)/i;
+                stats.settle_time(j) = stats.settle_time(j)/i;
+                stats.overshot(j) = stats.overshot(j)/i;
+                stats.Erege(j) = stats.Erege(j)/i;
+                stats.Ein(j) = stats.Ein(j)/i;
+                stats.predict_Erege(j) = stats.predict_Erege(j)/i;
             end
-            stats.accuracy_score = stats.accuracy_score/(i*j);
-            stats.accuracy_halt = stats.accuracy_halt/(i*j);
-            stats.avg_settle_time = stats.avg_settle_time/(i*j);
-            stats.avg_overshot = stats.avg_overshot/(i*j);
-            stats.avg_Erege = stats.total_Erege/(i*j);
-            stats.avg_kinetic = stats.total_kinetic/(i*j);
-            stats.pcnt_Erege = stats.avg_Erege/stats.avg_kinetic;
-            stats.avg_Ein = stats.Ein/(i*j);
-            stats.avg_predict_Erege = stats.predict_Erege/(i*j);
+            stats.avg_accuracy_score = mean(stats.accuracy_score);
+            stats.avg_accuracy_halt = mean(stats.accuracy_halt);
+            stats.avg_settle_time = mean(stats.settle_time);
+            stats.std_seetle_time = std(stats.settle_time);
+            stats.avg_overshot = mean(stats.overshot);
+            stats.std_overshot = std(stats.overshot);
+            stats.avg_Erege = mean(stats.Erege);
+            stats.std_Erege = std(stats.Erege);
+            %stats.avg_kinetic = stats.total_kinetic/(i*j);
+            %stats.pcnt_Erege = stats.avg_Erege/stats.avg_kinetic;
+            stats.avg_Ein = mean(stats.Ein);
+            stats.std_Ein = std(stats.Ein);
+            stats.avg_predict_Erege = mean(stats.predict_Erege);
         end
         
         % plot a list of trajs
